@@ -22,10 +22,10 @@ function [lift, rho, velocity, s, cl] = liftEq(hasLift,lift, hasRho,rho,...
     hasVel,velocity, hasS,s, hasCl,cl)
 
 sum = hasLift + hasRho + hasVel + hasS + hasCl;
-if sum < 4
-    disp('you must already have all the variables but one');
-    disp('One equation, one unknown');
-elseif ~hasLift
+% if sum < 4
+%     disp('you must already have all the variables but one');
+%     disp('One equation, one unknown');
+if ~hasLift
     lift = (1/2*rho*velocity^2)*s*cl;   %q = 1/2*rho*velocity^2
 elseif ~hasRho
     rho = lift*2/velocity^2/s/cl;

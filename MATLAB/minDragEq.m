@@ -1,12 +1,9 @@
-%@param hasLift boolean to see if a lift was input
+%This program is for finding the conditions of greatest cl/cd. If an input
+%is unknown, input "-1" and defaults will be set.
 %@param lift the lift that the wings are generating
-%@param hasRho boolean to see if a rho was input
 %@param rho the density of the fluid (probably air, 1.225 at sea level)
-%@param hasVel boolean to see if a velocity was input
 %@param velocity the velocity of the airflow (or plane in our case)
-%@param hasS boolean to see if an S was input
 %@param s wing area
-%@param hasCl boolean to see if a Cl was input
 %@param cl the lift coefficient
 %@return lift see param
 %@return rho see param
@@ -15,7 +12,7 @@
 %@return cl see param
 
 %%Author: Andrew Fletcher
-%%Email: afletche@ucsd.edu
+%%Email: afletcher168@gmail.com (personal)
 %%Note for emphasis, lift and weight can be interchanged for level flight
 
 %%Source for equation: Professor Anderson (MAE 155A lecture slides)
@@ -23,14 +20,17 @@
 
 %%Note: This equation is originally configured to solve for the velocity,
 %when given an S, and everything else, but I am planning on using it to
-%solve for S given velocity.
+%solve for S given velocity. This seems to only work for what would have
+%been the optimal velocity anyway :(
+%See MainScriptExe for current implementation and remove constraints for
+%performance vs. Iterative solution
 
 %%Assumptions: L=W, drag is minimized when Cl/Cd is maximized (true
 %statement), and Cl/Cd is maximized when (del/del(Cl))(Cl/Cd) = 0; This
 %happens when cl is taken as sqrt(cd0/k)
 
-%%Concerns: only the same concerns as from the analytic solution. Main
-%concern in here comes from the uncertainty in the getOswaldEff function.
+%%Concerns: See note. Additional concern comes from the uncertainty 
+%in the getOswaldEff function.
 
 function [s, velocity, cl, k] = minDragEq(velocity, density, s, cd0, ...
     wingSpan, lift, taperRatio, sweepAngle)
@@ -68,13 +68,14 @@ elseif s == -1
     eReal = eGuess;
     eGuess = 0; %so that it runs the loop
     counter = 0;
-    while(abs(eReal - eGuess) > 10^-7)
+    while(abs(eReal - eGuess) > 10^-6)
         eGuess = eReal;
         s = 4*lift^2/(velocity^4*density^2*wingSpan^2*pi*eGuess*cd0);
         ar = wingSpan^2/s;
         eReal = getOswaldEff(taperRatio, ar, sweepAngle);
         if counter > 1000
             disp("stuck in oscillation between eGuess and eReal in minDragEq");
+            eReal = (eGuess + eReal)/2;
             break
         end
     end

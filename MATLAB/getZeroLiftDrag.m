@@ -3,7 +3,11 @@
 %%This program for finding the zero-lift component of the drag, often
 %%denoted as cd0.
 
-%SOURCE for equation: Professor Anderson (MAE 155A lecture slides)
+%SOURCE for equations: Professor Anderson (MAE 155A lecture slides),
+%Munson, Young, Okishi Fluid Mechanics 8th edition, and MAE 101C Professor 
+%Bahadori (coming from Basic Heat Transfer, Mills 3rd edition) all use the 
+%same equations. However, Prfoessor Hwang, citing Raymer Aviation Design
+%uses a different process.
 %ASSUMPTIONS: The laminar solution is using the Blassius solution, which 
 %assumes a smooth surface and laminar flow. The turbulent solution is 
 %also empirical and assumes a turbulent flow and completely smooth surface. 
@@ -109,9 +113,14 @@ cd0 = 1.25*(cfWing*areaRatioWing + cfFuse*areaRatioFuse + ...
 %@param isLaminar   boolean for whether the surface has laminar flow or
 %turbulent
 function cf = getCf(velocity, density, viscosity, chord)
-RE_CRIT_TRANS = 1*10^5;
-% RE_CRIT_TURB = 5*10^5;
-RE_CRIT_TURB = 2*10^5;
+Re = density*velocity*chord/viscosity;
+
+RE_CRIT_TRANS = 1*10^5; %currently unused because no transition flow
+% Original
+% RE_CRIT_TURB = 2*10^5;
+% Hwang's Method:
+k = 0.7*10^-5;
+RE_CRIT_TURB = 38.21*(chord/k)^1.053;
 
 xCritTrans = RE_CRIT_TRANS*viscosity/(velocity*density);
 xCritTurb = RE_CRIT_TURB*viscosity/(velocity*density);
@@ -121,31 +130,18 @@ transFunc = @(x)(0.455/(log10(density*velocity*x/viscosity)^2.58) ...
     - 1700/(density*velocity*x/viscosity));
 turbFunc = @(x)(0.455/(log10(density*velocity*x/viscosity)^2.58));
 
-% if chord > xCritTurb
-%     cf = turbFunc(chord);
-% elseif chord > xCritTrans
-%     cf = transFunc(chord)
-% else
-%     cf = lamFunc(chord);
-% end
+turbFuncMills = @(x)(lamFunc(xCritTurb)*RE_CRIT_TURB/x + ...
+    0.523/log(0.006*x)^2*(1-RE_CRIT_TURB/x));
+turbFuncMillsLessThanE7 = @(x)(lamFunc(xCritTurb)*RE_CRIT_TURB/x + ...
+    0.0174*x^(-1/2)*(1-(RE_CRIT_TURB/x)^(4/5)));
 
-%It might work like this, IM NOT SURE. The concept behind this is that you
-%would also take into account the laminar and transition portion of the
-%flows, but Im not sure if these empirically determined equations were
-%built to work that way. Due to the uncertainty, and the fact that the
-%laminar and transition components should be small compared to the
-%turbulent, Im going to comment this out with the hope of future research
-%into the topic.
-
-% fullLamComponent = lamFunc(xCritTrans);
-% fullTransComponent = transFunc(xCritTurb) - transFunc(xCritTrans);
-% if chord > xCritTurb
-%     cf = fullLamComponent + fullTransComponent + ...
-%         turbFunc(chord) - turbFunc(xCritTurb);
-% elseif chord > xCritTrans
-%     cf = fullLamComponent + transFunc(chord) - transFunc(xCritTrans);
-% else
+% %Mills Method
+% if Re < RE_CRIT_TURB
 %     cf = lamFunc(chord);
+% % elseif Re < 10^7
+% %     cf = turbFuncMillsLessThamE7(Re);
+% else
+%     cf = turbFuncMills(Re);
 % end
 
 fullLamComponent = lamFunc(xCritTrans);

@@ -56,8 +56,8 @@ eTheoretical = 1/(1 + func(taperRatio - deltaTaperRatio)*ar);
 keF = 0.971;    %table value for general aviation
 keD0 = 0.804;   %table value for general aviation
 keM = 1;        %for subsonic aircraft
-% e = eTheoretical*keF*keD0*keM;
-e = eTheoretical;
+e = eTheoretical*keF*keD0*keM;
+% e = eTheoretical;
 
 %The paper goes on to find corrections for winglets, dihedral, and more
 %unconventional wing configurations such as box wings and c-wings.
