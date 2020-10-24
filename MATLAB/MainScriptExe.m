@@ -104,7 +104,7 @@ if sMinStruct > sMin
 end
 
 %%CONSTRAINT: STALL SPEED
-stallSpeed = 12;
+stallSpeed = 30;
 % L = 1/2*density*stallSpeed^2*S*clMax    nMax = clMax/cl    
 %stallSpeed = velocity/sqrt(nMax)   nMax = (velocity/stallSpeed)^2
 nStall = (velocityMax/stallSpeed)^2;
@@ -185,7 +185,8 @@ while abs(derivative) > 0.001
     AR = ARMaster;
         
     for i = 1:length(S) %for every wing area...
-        
+         weight = getWeight(S(i));       
+         lift = weight;
         %get the lift coefficient necessary for this S and velocity
         [lift, density, v_dbi(iterNum), S(i), cl(i)] = liftEq(hasLift,lift,...
            hasDensity,density, hasVel,v_dbi(iterNum), hasS,S(i), hasCl,cl(i));
@@ -324,6 +325,8 @@ for j = 1:length(velocity)  %for every velocity...
     AR = ARMaster;
     
     for i = 1:length(S) %for every wing area...
+        weight = getWeight(S(i));       
+        lift = weight; 
         
         %get the lift coefficient necessary for this S and velocity
         [lift, density, velocity(j), S(i), cl(i)] = liftEq(hasLift,lift,...
@@ -418,158 +421,158 @@ if nIter > maxLoadFactorTurns + 0.001
     disp("Invalid solution! Load factor constraint not satisfied.");
 end
 disp("Stall speed: " + stallSpeedIter);
-%% Analytic Solution
-%Iterate until S guess is close to S calc, and eGuess is close to e calc
-%When comparing to the iterative solution, it appears that my assumption
-%that finding the configuration with an optimal velocity of our desired
-%velocity does not true for any velocity except the velocity which is the
-%ideal velocity for the configuration. This can be seen in figure 6.
-
-%%Preallocation for velocity (only iterates over velocity)
-clOverCd = velocity;
-cl = velocity;
-cd0 = velocity;
-cdi = velocity;
-cd = velocity;
-dragAna = velocity;
-zeroLiftDragAna = velocity;
-inducedDragAna = velocity;
-s = velocity;
-for i = 1:length(velocity)
-    %%Declaring that we have these variables
-    hasLift = 1;
-    hasVel = 1;
-    hasCd0 = 1;
-
-    %want to find ideal S using minDragEq (source in function)
-    sWingGuess = 0.8;    %initial guess based on Fiber One (old platform)
-    s(i) = sWingGuess;
-    sWingGuess = 0;     %so that is runs the loop
-    infLoopCount = 0;   %counter to prevent infinite loop
-    lastIter = false;   %signifies last iteration if inf loop triggered
-    while(abs(sWingGuess - s(i)) > 10^-8)
-        %Preparing for the getZeroLiftDrag function by stating we have the wing
-        %area
-        infLoopCount = infLoopCount + 1;
-        if infLoopCount > 1000
-            s(i) = (sWingGuess + s(i))/2;
-            lastIter = true;
-        else
-            sWingGuess = s(i);
-        end
-        wingChord = s(i)/wingSpan;
-        %get zero-lift drag coeff for this S
-        cd0(i) = getZeroLiftDrag(density, viscosity, velocity(i), ...
-        sWingGuess,wingChord, sFuse,lenFuse, sNose,lenNose, sTail,cTail, ...
-        sTailBoom,lenTailBoom);
-
-        %We want to solve for the wing area, so we state that we don't know it
-        s(i) = -1;     %-1 means we don't have the information
-
-        %Solve for ideal S and Cl for this velocity, wing span, cd0, and weight 
-        [s(i), velocity(i), cl(i), k(i)] = minDragEq(velocity(i), density,...
-            s(i), cd0(i), wingSpan, lift, taperRatio, sweepAngle);
-        %this will return an s, but the cd0 was calculated based on a guess for
-        %S, so this s becomes the new guess, and we iterate until the guess
-        %matches the return. (causes oscillations sometimes on unlucky inputs)
-        if lastIter
-            break;
-        end
-    end
-
-    %%Get characteristics
-    %%Get cdi so we can later get cd
-    cdi(i) = k(i)*cl(i)^2;    %cdi should equal cd0
-    %%Get cd so we can later get cl/cd
-    cd(i) = cdi(i) + cd0(i);
-    %%Get drags for plotting
-    dragAna(i) = 1/2*density*velocity(i)^2*s(i)*cd(i);
-    zeroLiftDragAna(i) = 1/2*density*velocity(i)^2*s(i)*cd0(i);
-    inducedDragAna(i) = 1/2*density*velocity(i)^2*s(i)*cdi(i);
-
-    %%Get cl/cd to report performance
-    clOverCd(i) = cl(i)/cd(i);
-end
-
-%%Plots for visualization
-%%Analytic Results Plots
-figure(201)
-plot(velocity, dragAna, '-m', ...
-    velocity, zeroLiftDragAna, '-k', velocity, inducedDragAna, '--c');
-xlabel("Velocity (m/s)"); ylabel("Drag (N)"); 
-title("Analytic: Minimum Drag vs. Velocity");
-legend("total drag","zero lift drag","induced drag");
-figure(202)
-plot(velocity, clOverCd, '-b')
-xlabel("Velocity (m/s)"); ylabel("CL/CD"); 
-title("Analytic: Maximum CL/CD vs. Velocity");
-%%Comparison plots between Iterative and Analytic
-figure(203)
-plot(velocity, bestDrag, '-g', ...
-    velocity, zeroLiftDrag, '-b', velocity, inducedDrag, '-r',...
-    velocity, dragAna, '--m', ...
-    velocity, zeroLiftDragAna, '-k', velocity, inducedDragAna, '--c');
-xlabel("Velocity (m/s)"); ylabel("Drag (N)"); 
-title("Iterative vs. Analytic: Minimum Drag vs. Velocity");
-legend("Iterative: total drag", "Iterative: zero lift drag", ...
-    "Iterative: induced drag",...
-    "Analytic: total drag", "Analytic: zero lift drag", ...
-    "Analytic: induced drag");
-figure(204)
-plot(velocity, maxClOverCdIterate, '-b', velocity, clOverCd, '--g')
-xlabel("Velocity (m/s)"); ylabel("CL/CD"); 
-title("Iterative vs. Analytic: Maximum CL/CD vs. Velocity");
-legend("Iterative", "Analytic");
-
-%%Setting quantites to the most efficient
-index = find(clOverCd == max(clOverCd));  %index of max efficiency
-clOverCd = max(clOverCd);
-velocityAna = velocity(index);
-cl = cl(index);
-cd = cd(index);
-cd0 = cd0(index);
-cdi = cdi(index);
-s = s(index);
-k = k(index);
-
-chord = s/wingSpan;     %%Get chord to check feasibility
-AR = wingSpan^2/s;  %%Get aspect ratio to check feasibility
-nAna = sqrt((velocityAna^2/radius/g)^2 + 1); %%Update load factor for turns
-stallSpeedAna = velocityAna/sqrt(maxLoadFactorStall);  %%Update stall speed
-
-%Report characteristics
-disp("----------------------------");
-disp("ANALYTIC SOLUTION");
-disp("----------------------------");
-disp("cl/cd: " + clOverCd);
-disp("Velocity: " + velocityAna + " m/s");
-disp("cl: " + cl);
-disp("S: " + s + " m^2");
-disp("Wing Loading: " + lift/s);
-disp("Chord: " + chord + " m");
-disp("Aspect Ratio: " + AR);
-disp("Load factor on turns: " + nAna);
-if nAna > maxLoadFactorTurns + 0.001
-    disp("Invalid solution! Load factor constraint not satisfied.");
-end
-disp("Stall speed: " + stallSpeedAna);
-
-%%Checks
-%%This method sets cd0 = cdi
-if abs(cdi - cd0) > 1e-5
-    disp("cd0 is not equal to cdi. Something went wrong");
-end
-%%This method should return a cl/cd of 1/(2*sqrt(cd0*k))
-expectedClOverCd = (1/(2*sqrt(cd0*k)));
-if abs(clOverCd - expectedClOverCd) > 1e-5
-    disp("cl/cd is not equal to expected value. Something went wrong.");
-end
-%%Lift should equal weight for level flight
-lift = 1/2*density*velocityAna^2*s*cl;
-if abs(lift - weight) > 1e-3
-    disp("lift is not equal to weight. Something went wrong.");
-end
-
-
+% %% Analytic Solution
+% %Iterate until S guess is close to S calc, and eGuess is close to e calc
+% %When comparing to the iterative solution, it appears that my assumption
+% %that finding the configuration with an optimal velocity of our desired
+% %velocity does not true for any velocity except the velocity which is the
+% %ideal velocity for the configuration. This can be seen in figure 6.
+% 
+% %%Preallocation for velocity (only iterates over velocity)
+% clOverCd = velocity;
+% cl = velocity;
+% cd0 = velocity;
+% cdi = velocity;
+% cd = velocity;
+% dragAna = velocity;
+% zeroLiftDragAna = velocity;
+% inducedDragAna = velocity;
+% s = velocity;
+% for i = 1:length(velocity)
+%     %%Declaring that we have these variables
+%     hasLift = 1;
+%     hasVel = 1;
+%     hasCd0 = 1;
+% 
+%     %want to find ideal S using minDragEq (source in function)
+%     sWingGuess = 0.8;    %initial guess based on Fiber One (old platform)
+%     s(i) = sWingGuess;
+%     sWingGuess = 0;     %so that is runs the loop
+%     infLoopCount = 0;   %counter to prevent infinite loop
+%     lastIter = false;   %signifies last iteration if inf loop triggered
+%     while(abs(sWingGuess - s(i)) > 10^-8)
+%         %Preparing for the getZeroLiftDrag function by stating we have the wing
+%         %area
+%         infLoopCount = infLoopCount + 1;
+%         if infLoopCount > 1000
+%             s(i) = (sWingGuess + s(i))/2;
+%             lastIter = true;
+%         else
+%             sWingGuess = s(i);
+%         end
+%         wingChord = s(i)/wingSpan;
+%         %get zero-lift drag coeff for this S
+%         cd0(i) = getZeroLiftDrag(density, viscosity, velocity(i), ...
+%         sWingGuess,wingChord, sFuse,lenFuse, sNose,lenNose, sTail,cTail, ...
+%         sTailBoom,lenTailBoom);
+% 
+%         %We want to solve for the wing area, so we state that we don't know it
+%         s(i) = -1;     %-1 means we don't have the information
+% 
+%         %Solve for ideal S and Cl for this velocity, wing span, cd0, and weight 
+%         [s(i), velocity(i), cl(i), k(i)] = minDragEq(velocity(i), density,...
+%             s(i), cd0(i), wingSpan, lift, taperRatio, sweepAngle);
+%         %this will return an s, but the cd0 was calculated based on a guess for
+%         %S, so this s becomes the new guess, and we iterate until the guess
+%         %matches the return. (causes oscillations sometimes on unlucky inputs)
+%         if lastIter
+%             break;
+%         end
+%     end
+% 
+%     %%Get characteristics
+%     %%Get cdi so we can later get cd
+%     cdi(i) = k(i)*cl(i)^2;    %cdi should equal cd0
+%     %%Get cd so we can later get cl/cd
+%     cd(i) = cdi(i) + cd0(i);
+%     %%Get drags for plotting
+%     dragAna(i) = 1/2*density*velocity(i)^2*s(i)*cd(i);
+%     zeroLiftDragAna(i) = 1/2*density*velocity(i)^2*s(i)*cd0(i);
+%     inducedDragAna(i) = 1/2*density*velocity(i)^2*s(i)*cdi(i);
+% 
+%     %%Get cl/cd to report performance
+%     clOverCd(i) = cl(i)/cd(i);
+% end
+% 
+% %%Plots for visualization
+% %%Analytic Results Plots
+% figure(201)
+% plot(velocity, dragAna, '-m', ...
+%     velocity, zeroLiftDragAna, '-k', velocity, inducedDragAna, '--c');
+% xlabel("Velocity (m/s)"); ylabel("Drag (N)"); 
+% title("Analytic: Minimum Drag vs. Velocity");
+% legend("total drag","zero lift drag","induced drag");
+% figure(202)
+% plot(velocity, clOverCd, '-b')
+% xlabel("Velocity (m/s)"); ylabel("CL/CD"); 
+% title("Analytic: Maximum CL/CD vs. Velocity");
+% %%Comparison plots between Iterative and Analytic
+% figure(203)
+% plot(velocity, bestDrag, '-g', ...
+%     velocity, zeroLiftDrag, '-b', velocity, inducedDrag, '-r',...
+%     velocity, dragAna, '--m', ...
+%     velocity, zeroLiftDragAna, '-k', velocity, inducedDragAna, '--c');
+% xlabel("Velocity (m/s)"); ylabel("Drag (N)"); 
+% title("Iterative vs. Analytic: Minimum Drag vs. Velocity");
+% legend("Iterative: total drag", "Iterative: zero lift drag", ...
+%     "Iterative: induced drag",...
+%     "Analytic: total drag", "Analytic: zero lift drag", ...
+%     "Analytic: induced drag");
+% figure(204)
+% plot(velocity, maxClOverCdIterate, '-b', velocity, clOverCd, '--g')
+% xlabel("Velocity (m/s)"); ylabel("CL/CD"); 
+% title("Iterative vs. Analytic: Maximum CL/CD vs. Velocity");
+% legend("Iterative", "Analytic");
+% 
+% %%Setting quantites to the most efficient
+% index = find(clOverCd == max(clOverCd));  %index of max efficiency
+% clOverCd = max(clOverCd);
+% velocityAna = velocity(index);
+% cl = cl(index);
+% cd = cd(index);
+% cd0 = cd0(index);
+% cdi = cdi(index);
+% s = s(index);
+% k = k(index);
+% 
+% chord = s/wingSpan;     %%Get chord to check feasibility
+% AR = wingSpan^2/s;  %%Get aspect ratio to check feasibility
+% nAna = sqrt((velocityAna^2/radius/g)^2 + 1); %%Update load factor for turns
+% stallSpeedAna = velocityAna/sqrt(maxLoadFactorStall);  %%Update stall speed
+% 
+% %Report characteristics
+% disp("----------------------------");
+% disp("ANALYTIC SOLUTION");
+% disp("----------------------------");
+% disp("cl/cd: " + clOverCd);
+% disp("Velocity: " + velocityAna + " m/s");
+% disp("cl: " + cl);
+% disp("S: " + s + " m^2");
+% disp("Wing Loading: " + lift/s);
+% disp("Chord: " + chord + " m");
+% disp("Aspect Ratio: " + AR);
+% disp("Load factor on turns: " + nAna);
+% if nAna > maxLoadFactorTurns + 0.001
+%     disp("Invalid solution! Load factor constraint not satisfied.");
+% end
+% disp("Stall speed: " + stallSpeedAna);
+% 
+% %%Checks
+% %%This method sets cd0 = cdi
+% if abs(cdi - cd0) > 1e-5
+%     disp("cd0 is not equal to cdi. Something went wrong");
+% end
+% %%This method should return a cl/cd of 1/(2*sqrt(cd0*k))
+% expectedClOverCd = (1/(2*sqrt(cd0*k)));
+% if abs(clOverCd - expectedClOverCd) > 1e-5
+%     disp("cl/cd is not equal to expected value. Something went wrong.");
+% end
+% %%Lift should equal weight for level flight
+% lift = 1/2*density*velocityAna^2*s*cl;
+% if abs(lift - weight) > 1e-3
+%     disp("lift is not equal to weight. Something went wrong.");
+% end
+% 
+% 
 
 
