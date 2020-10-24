@@ -99,7 +99,7 @@ cfNose = getCf(velocity, density, viscosity, lenNose);
 cfTail = getCf(velocity, density, viscosity, cTail);
 cfTailBoom = getCf(velocity, density, viscosity, lenTailBoom);
 
-areaRatioWing = sWing/sWing;
+areaRatioWing = 2*sWing/sWing;
 areaRatioFuse = sFuse/sWing;
 areaRatioNose = sNose/sWing;
 areaRatioTail = sTail/sWing;
