@@ -37,6 +37,8 @@ clc;
 format compact
 format shortg;
 addpath("Utils")
+addpath("Weight");
+addpath("Structures");
 
 %% Constants
 g = 9.81;                   %sea level Earth gravity

@@ -99,23 +99,53 @@ cfNose = getCf(velocity, density, viscosity, lenNose);
 cfTail = getCf(velocity, density, viscosity, cTail);
 cfTailBoom = getCf(velocity, density, viscosity, lenTailBoom);
 
+a = 343;    %Speed of sound
+M = velocity/a;
+sweepAngle = 0;
+FFWingFunc = @(xOverC, tOverC, M, sweep)((1 + ...
+    0.6/xOverC*tOverC + 100*tOverC^4) *...
+    (1.34*M^0.18*(cos(sweepAngle))^0.28));
+FFFuseFunc = @(f)(1 + 30/f^3 + f/400);
+FFNacelle = @(f)(1 + 0.35/f);
+fFunc = @(l, Amax)(l/sqrt(4/pi*Amax));      %this is just l/d
+
+FFWing = FFWingFunc(0.4, 0.12, M, 0);
+FFTail = FFWingFunc(0.4, 0.15, M, 0);
+fTailBoom = fFunc(lenTailBoom, ((sTailBoom/lenTailBoom/pi)/2)^2*pi);
+FFTailBoom = FFFuseFunc(fTailBoom);
+fFuse = fFunc(lenFuse, ((sFuse/lenTailBoom/pi)/2)^2*pi);
+FFFuse = FFFuseFunc(fFuse);
+FFFuseAlt = FFNacelle(fFuse);
+fNose = fFunc(lenNose, ((sNose/lenNose/pi)/2)^2*pi);
+FFNose = FFFuseFunc(fNose);
+
+Q = 1.1;    %fudge factor
+
 areaRatioWing = 2*sWing/sWing;
 areaRatioFuse = sFuse/sWing;
 areaRatioNose = sNose/sWing;
 areaRatioTail = sTail/sWing;
 areaRatioTailBoom = sTailBoom/sWing;
 
-cd0 = 1.25*(cfWing*areaRatioWing + cfFuse*areaRatioFuse + ...
-    cfNose*2/sqrt(3)*areaRatioNose + cfTail*areaRatioTail + ...
-    cfTailBoom*areaRatioTailBoom);
+%Hwang method
+cd0 = Q*(cfWing*FFWing*areaRatioWing + cfFuse*FFFuse*areaRatioFuse + ...
+    cfNose*FFNose*areaRatioNose + cfTail*FFTail*areaRatioTail + ...
+    cfTailBoom*FFTailBoom*areaRatioTailBoom);
+
+%Anderson method
+% cd0 = 1.25*(cfWing*areaRatioWing + cfFuse*areaRatioFuse + ...
+%     cfNose*2/sqrt(3)*areaRatioNose + cfTail*areaRatioTail + ...
+%     cfTailBoom*areaRatioTailBoom);
 
 %@param re Reynold's number
 %@param isLaminar   boolean for whether the surface has laminar flow or
 %turbulent
 function cf = getCf(velocity, density, viscosity, chord)
 Re = density*velocity*chord/viscosity;
+a = 343;    %speed of sound
+M = velocity/a;
 
-RE_CRIT_TRANS = 1*10^5; %currently unused because no transition flow
+RE_CRIT_TRANS = 1*10^5; %currently unused
 % Original
 % RE_CRIT_TURB = 2*10^5;
 % Hwang's Method:
@@ -125,11 +155,14 @@ RE_CRIT_TURB = 38.21*(chord/k)^1.053;
 xCritTrans = RE_CRIT_TRANS*viscosity/(velocity*density);
 xCritTurb = RE_CRIT_TURB*viscosity/(velocity*density);
 
+%Textbook for flat plate and Anderson for all surfaces
 lamFunc = @(x)(1.328/sqrt(density*velocity*x/viscosity));
 transFunc = @(x)(0.455/(log10(density*velocity*x/viscosity)^2.58) ...
     - 1700/(density*velocity*x/viscosity));
-turbFunc = @(x)(0.455/(log10(density*velocity*x/viscosity)^2.58));
+turbFunc = @(x)(0.455/(log10(density*velocity*x/viscosity)^2.58...
+    *(1 + 0.144*M^2)^0.65));
 
+%Mills for flat plate
 turbFuncMills = @(x)(lamFunc(xCritTurb)*RE_CRIT_TURB/x + ...
     0.523/log(0.006*x)^2*(1-RE_CRIT_TURB/x));
 turbFuncMillsLessThanE7 = @(x)(lamFunc(xCritTurb)*RE_CRIT_TURB/x + ...
