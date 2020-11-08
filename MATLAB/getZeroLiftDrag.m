@@ -127,11 +127,21 @@ areaRatioNose = sNose/sWing;
 areaRatioTail = sTail/sWing;
 areaRatioTailBoom = sTailBoom/sWing;
 
+if sWing == 0
+    disp("Can't input a wing area of 0 because divide by 0 errors " + ...
+        "in the getZeroLiftDrag function.")
+end
 if sFuse == 0
     FFFuse = 0;
 end
 if sNose == 0
     FFNose = 0;
+end
+if sTail == 0
+    FFTail = 0;
+end
+if sTailBoom == 0
+    FFTailBoom = 0;
 end
 
 %Hwang method
