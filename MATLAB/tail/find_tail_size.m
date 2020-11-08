@@ -31,6 +31,7 @@ function [tail_area_h, tail_area_v, tail_boom_length] = find_tail_size(wingspan,
 
 format compact
 format shortg;
+addpath("tail/tailUtils");
 
 %% Code
 
@@ -73,7 +74,7 @@ for i = 1:length(lenTailBoom)   % Declaring the for loop that runs everything a 
     %if variable 1 do something
     %if variable 2 == -1 do something (doesnt have a value)
 
-    sWing = 1;
+    sWing = wingarea;
     cWing = 99999999999999999999999;
     sFuse = 0;
     lenFuse = 1; 
@@ -83,7 +84,7 @@ for i = 1:length(lenTailBoom)   % Declaring the for loop that runs everything a 
     cTail = -1;
     sTailBoom = 2*pi*x_ach*0.0762; 
     TailBoom_Length = x_ach;
-
+    
     cd0 = getZeroLiftDrag(density, viscosity, velocity, ...
     sWing,cWing, sFuse,lenFuse, sNose,lenNose, sTail,cTail, ...
     sTailBoom, TailBoom_Length);
@@ -94,7 +95,8 @@ end
 
 % Outputs for Tail Area
 
-min(Zero_Lift_Drag_Coeff);          %Finds the lowest zero lift coefficient
+Zero_Lift_Drag_Coeff;
+min(Zero_Lift_Drag_Coeff);         %Finds the lowest zero lift coefficient
 u = find(Zero_Lift_Drag_Coeff == min(Zero_Lift_Drag_Coeff));    % Find the location/index of the minimum zero lift drag
 tail_boom_length = lenTailBoom(u);   % Tail Boom Length
 tail_area_h = S_h(u);                % Horizontal Tail Area

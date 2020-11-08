@@ -127,6 +127,13 @@ areaRatioNose = sNose/sWing;
 areaRatioTail = sTail/sWing;
 areaRatioTailBoom = sTailBoom/sWing;
 
+if sFuse == 0
+    FFFuse = 0;
+end
+if sNose == 0
+    FFNose = 0;
+end
+
 %Hwang method
 cd0 = Q*(cfWing*FFWing*areaRatioWing + cfFuse*FFFuse*areaRatioFuse + ...
     cfNose*FFNose*areaRatioNose + cfTail*FFTail*areaRatioTail + ...

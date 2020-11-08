@@ -152,31 +152,35 @@ if velocityReq > velocityMin
     velocity = linspace(velocityMin, velocityMax, numSteps);
 end
 
+%%CONTRAINT: TAIL SIZING
+C_HT = 1;
+C_VT = 0.1;
+
 %% Function definition
 % outputs: function [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
 % inputs:  = subfunction_name(AR, ARMaster, G, S, SFTime, SMaster, additionalWaypointDist, avgChordReq, cTail, climbAngleReq, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, n, nStall, numSteps, radius, rootChordReq, sFuse, sMax, sMin, sMinStruct, sNose, sTail, sTailBoom, stallSpeed, sweepAngle, taperRatio, timeLimit, tipChordReq, totalTravelDist, velocity, velocityMax, velocityMin, velocityReq, viscosity, weight, wingSpan) 
 
 %Pick Method
-methods = ["DBI" "Iterative" "Analytical"];
+methods = ["DBI"];
 sol = 0; %has a solution been found?)
 
 if find(methods == "DBI")
     % run the subfunction dbi_sol [same as before]
     [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
-    = dbi_sol(ARMaster, S, SMaster, cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, viscosity, wingSpan);
+    = dbi_sol(ARMaster, S, SMaster, cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT);
     sol = 1;
 end
 if find(methods == "Iterative")
     % run the subfunction iter_sol [same as before]
     [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
-    = iter_sol(ARMaster, S, SMaster, cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan);
+    = iter_sol(ARMaster, S, SMaster, cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan, C_HT, C_VT);
     sol = 1;
 end
 if find(methods == "Analytical")
     % run the outdated subfunction anal_sol
     % no comparison graphs
     [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
-    = anal_sol(cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan);
+    = anal_sol(cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan, C_HT, C_VT);
     sol = 1;
 end
 if sol == 0
@@ -185,7 +189,7 @@ end
 
 %% Derivative based iteration solution
 function [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
-    = dbi_sol(ARMaster, S, SMaster, cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, viscosity, wingSpan) 
+    = dbi_sol(ARMaster, S, SMaster, cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT) 
 %TODO still need to finish validating and cleaning up stuff that is not
 %needed, and finish making the output print statements
 %TODO think about this from a controller standpoint, and how to add Kd and
@@ -291,6 +295,9 @@ while abs(derivative) > 0.001
 end
 v_dbi = v_dbi(1:end-1); %clip off the last value because it's not real
 
+[tail_area_h, tail_area_v, tail_boom_length] = find_tail_size(wingSpan, ...
+    S(iterNum), bestchord(iterNum), C_HT, C_VT, density, viscosity, v_dbi(iterNum))
+
 figure(1);
 plot(1:iterNum, maxClOverCdIterate, '-bo');
 xlabel("Iteration Number"); ylabel("CL/CD"); 
@@ -331,7 +338,7 @@ end
 % 
 %% Iterative solution
 function [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
-    = iter_sol(ARMaster, S, SMaster, cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan) 
+    = iter_sol(ARMaster, S, SMaster, cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan, C_HT, C_VT) 
 %declaring that I have these variables for use of the lift equation
 hasLift = 1;
 hasDensity = 1;
@@ -479,7 +486,7 @@ end
 %% Analytic Solution
 %Note: this is old as of November 2020. Run at your own risk.
 function [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
-    = anal_sol(cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan) 
+    = anal_sol(cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan, C_HT, C_VT) 
 
 %Iterate until S guess is close to S calc, and eGuess is close to e calc
 %When comparing to the iterative solution, it appears that my assumption
