@@ -39,6 +39,8 @@ format shortg;
 addpath("Utils")
 addpath("Weight");
 addpath("Structures");
+addpath("tail");
+addpath("Airfoil");
 
 %% Constants
 g = 9.81;                   %sea level Earth gravity
