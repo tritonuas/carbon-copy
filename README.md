@@ -16,7 +16,9 @@ https://web.mit.edu/drela/Public/web/xfoil/
 
 ## Authors
 Andrew Fletcher
+Allyson Chen and Kevin Vo: Developing the architecture for optimizing the 
+    tail and tail boom to minimize drag, but satisfy volume coefficients.
 Tsz-Wai Kwok: Developing the wing weight considering and splitting the solution
     methods into their own functions.
-Kaelan Tan: Improving the airfoil comparison code and writing a script in MATLAB 
-    to run airfoil analysis on airfoil dat files using XFoil.
+Kaelan Tan: Improving the airfoil comparison code and writing a script in 
+    MATLAB to run airfoil analysis on airfoil dat files using XFoil.
