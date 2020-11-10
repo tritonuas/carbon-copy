@@ -153,8 +153,9 @@ if velocityReq > velocityMin
 end
 
 %%CONTRAINT: TAIL SIZING
-C_HT = 1;
-C_VT = 0.1;
+%This is based off of Anderson's MAE 155A slides(see stability, last slide)
+C_HT = 1;       %Horizontal tail volume coefficient
+C_VT = 0.1;     %Vertical tail volume coefficient
 
 %% Function definition
 % outputs: function [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
