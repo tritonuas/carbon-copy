@@ -297,7 +297,7 @@ end
 v_dbi = v_dbi(1:end-1); %clip off the last value because it's not real
 
 [tail_area_h, tail_area_v, tail_boom_length] = find_tail_size(wingSpan, ...
-    S(iterNum), bestchord(iterNum), C_HT, C_VT, density, viscosity, v_dbi(iterNum))
+    S(iterNum), bestchord(iterNum), C_HT, C_VT, density, viscosity, v_dbi(iterNum));
 
 figure(1);
 plot(1:iterNum, maxClOverCdIterate, '-bo');
@@ -331,6 +331,9 @@ disp("Wing loading: " + wing_loading);
 disp("Chord: " + best_chord_sol);
 disp("Aspect ratio: " + best_AR_sol);
 disp("Load factor on turns: " + nIter);
+disp("Horizontal Tail Area: " + tail_area_h); 
+disp("Vertical Tail Area: " + tail_area_v); 
+disp("Tail Boom Length: " + tail_boom_length); 
 if nIter > maxLoadFactorTurns + 0.001
     disp("Invalid solution! Load factor constraint not satisfied.");
 end
