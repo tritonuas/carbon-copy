@@ -336,7 +336,7 @@ if nIter > maxLoadFactorTurns + 0.001
 end
 disp("Stall speed: " + stallSpeedIter);
 end
-% 
+ 
 %% Iterative solution
 function [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
     = iter_sol(ARMaster, S, SMaster, cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan, C_HT, C_VT) 
