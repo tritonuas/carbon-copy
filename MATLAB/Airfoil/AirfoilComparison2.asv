@@ -35,7 +35,7 @@ while (cont~='N' && cont~='n')
     if (cont=='Y' || cont=='y')
         i=i+1;
     end
-    fclose('all');
+    fclose('all')
 end
 
 %% Plotting
