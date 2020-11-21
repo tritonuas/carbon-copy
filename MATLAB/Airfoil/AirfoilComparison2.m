@@ -23,7 +23,11 @@ i=1;
 while (cont~='N' && cont~='n')
     designation=input("Airfoil designation: ",'s');
     num(i)=input("Airfoil Number: ");
-    fID = fopen(strcat(designation,num2str(num(i)),".pol"),'r');  %loads the file
+    num_str = num2str(num(i));
+    if num(i) < 10
+        num_str = strcat("000", num_str);
+    end
+    fID = fopen(strcat(designation,num_str,".pol"),'r');  %loads the file
     A = textscan(fID,'%f %f %f %f %f %f %f', 'HeaderLines', 12);  %skips headers
     fclose(fID);
     alpha{i} = A{:,1};                     %range of alpha
