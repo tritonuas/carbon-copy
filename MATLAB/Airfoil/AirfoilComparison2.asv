@@ -21,7 +21,7 @@ names={A.name}; names(1)=[]; names(1)=[];
 %% Inputs
 cont=0;
 i=1;
-airfoil_name = "initial_string";
+cont = i
 while (cont~='N' && cont~='n')
     airfoil_name(i) = input("Airfoil Name: ",'s');
 %     num(i)=input("Airfoil Number: ", 's');
@@ -59,14 +59,6 @@ for n=1:i
     plot(alpha{:,n}, cd{:,n})
 end
 xlabel('alpha');ylabel('CD');title('CD vs. alpha');
-legend(airfoil_name)
-
-figure;
-hold on
-for n=1:i
-    plot(alpha{:,n}, cm{:,n})
-end
-xlabel('alpha');ylabel('CM');title('CM vs. alpha');
 legend(airfoil_name)
 
 figure
