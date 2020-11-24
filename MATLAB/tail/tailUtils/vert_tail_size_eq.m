@@ -1,6 +1,6 @@
- 
+%@param  
 
-function [wingspan, S_v, wingarea, x_acv, x_cg, C_VT] = vert_tail_size_eq(x_acv, x_cg, S_v, wingspan, wingarea, C_VT, hasx_acv, hasx_cg, hasS_v, hasb, hasS,...
+function [wingspan, S_v, wingarea, x_acv, x_cg, C_VT] = vert_tail_size_eq(x_acv, x_cg, S_v, wingspan, wingarea, C_VT, hasx_acv, hasx_cg, hasS_v, haswingspan, hasS,...
     hasC_VT)
 
 if ~hasx_acv
@@ -12,7 +12,7 @@ elseif ~hasx_cg
 elseif ~hasS_v
     S_v = C_VT*wingspan*wingarea/(x_acv-x_cg);
     
-elseif ~hasb
+elseif ~haswingspan
     wingspan = (x_acv-x_cg)*S_v/C_VT*wingarea;
     
 elseif ~hasS
