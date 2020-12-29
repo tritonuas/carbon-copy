@@ -124,7 +124,7 @@ Q = 1.1;    %fudge factor
 areaRatioWing = 2*sWing/sWing;
 areaRatioFuse = sFuse/sWing;
 areaRatioNose = sNose/sWing;
-areaRatioTail = sTail/sWing;
+areaRatioTail = 2*sTail/sWing;
 areaRatioTailBoom = sTailBoom/sWing;
 
 if sWing == 0

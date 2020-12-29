@@ -63,6 +63,7 @@ for i = 1:length(lenTailBoom)   % Declaring the for loop that runs everything a 
     [wingspan, S_v(i), wingarea, x_acv, x_cg, C_VT] = vert_tail_size_eq(x_acv, x_cg, S_v(i), wingspan, wingarea, C_VT, hasx_acv, hasx_cg, hasS_v, hasb, hasS,...
     hasC_VT);
 
+
     hasx_ach = 1;
     hasS_h = 0;
     hasc = 1;
