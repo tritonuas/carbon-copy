@@ -51,7 +51,7 @@ for n=1:i
     plot(alpha{:,n}, cl{:,n})
 end
 xlabel('alpha');ylabel('CL');title('CL vs. alpha');
-legend(airfoil_name)
+legend(airfoil_name, 'Location','southeast')
 
 figure;
 hold on
@@ -76,4 +76,13 @@ for n=1:i
 end
 xlabel('alpha');ylabel('CL/CD');title('CL/CD vs. alpha');
 legend(airfoil_name)
+
+figure
+hold on
+for n=1:i
+    plot(cl{:,n}, clcdEfficiency{n})
+end
+xlabel('CL');ylabel('CL/CD');title('CL/CD vs. CL');
+legend(airfoil_name,'Location','southwest');
+    
     
