@@ -7,7 +7,7 @@
 % format
 
 %% General
-clear,clc;
+clear;clc;
 close all;
 clc;
 format compact;

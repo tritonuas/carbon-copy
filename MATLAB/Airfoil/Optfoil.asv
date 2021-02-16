@@ -25,7 +25,7 @@ airfoil_dir_name = 'C:\TUAS\carbon-copy\MATLAB\Airfoil\airfoil_database\';
 % Cl = 0.9673;      %Improvement: make it able to accept either 'naca2212' or '2212'
 % trimAirfoil = GuessAirfoil;
 A = GuessAirfoil(5);
-initialA = A;
+initialA = 
 numA = str2double(A);
 CC = GuessAirfoil(7:end);
 if numA == 0
@@ -141,7 +141,7 @@ i = 1;
     disp(best_airfoil);
     disp(mx);
     else
-        fprintf('Unable to run because no airfoils with A above %s exist ending in %s%s. Try different GuessAirfoil.\n', initialA, B, CC);
+        fprintf('Unable to run because no airfoils with A above %s exist ending in %s%s. Try different GuessAirfoil.\n', A, B, CC);
     end
 %% Plotting
 % figure;
