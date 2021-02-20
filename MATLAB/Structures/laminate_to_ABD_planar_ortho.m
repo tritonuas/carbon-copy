@@ -17,7 +17,7 @@
 %@return Delta the Delta matrix in the AlphaBetaDelta matrix
 function [ABD, A, B, D, Ex, Ey, Gxy, Nuxy, AlphaBetaDelta, Alpha, Beta,...
     Delta] = laminate_to_ABD_planar_ortho(thetas, rad_or_deg, ...
-    thicknesses, E1, E2, G12, Nu12)
+    thicknesses, material_props)
                                                 
 %Preallocation
 planar_size = 3;
@@ -26,7 +26,7 @@ Q = zeros(planar_size, planar_size, length(thetas));
 Qbar = zeros(planar_size, planar_size, length(thetas));
 
 for k = 1:length(thetas)
-    S(:,:,k) = get_S_planar_ortho(E1, E2, G12, Nu12);
+    S(:,:,k) = get_S_planar_ortho(material_props(:,k));
     Q(:,:,k) = inv(S(:,:,k));
     Qbar(:,:,k) = get_Q_bar_planar(Q(:,:,k), thetas(k), rad_or_deg);
 end

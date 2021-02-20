@@ -12,4 +12,4 @@ function S_bar = get_S_bar_planar(S, theta, radOrDeg)
 T_sigma = get_T_planar(theta, 'stress', radOrDeg);
 
 %Calculating Q_bar using the transformation matrix
-S_bar = T_sigma'*S*T_sigma;
+S_bar = T_sigma'*S*T_sigma

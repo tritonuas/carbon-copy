@@ -89,7 +89,7 @@ cTail = -1;
 sTailBoom = -1;
 lenTailBoom = -1;
 
-%% Desired Parameters
+%% Desired Parameters/Constraints
 
 %%CONSTRAINT: MAX CL CRUISE
 maxClCruise = 1.8;  %see iterative solution for implementation
@@ -123,7 +123,7 @@ if nStall > maxLoadFactorStall
 end
 
 %%CONSTRAINT: TURNING RADIUS
-radius = 99;    %want this radius
+radius = 99;    %want this radius max 33.98m
 %radius = v^2/(g*sqrt(n^2-1))
 n = sqrt((velocityMax^2/radius/g)^2 + 1);%load factor req for desired turns
 if n > maxLoadFactorTurns
