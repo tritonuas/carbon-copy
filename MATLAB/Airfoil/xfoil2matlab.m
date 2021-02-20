@@ -12,7 +12,7 @@ names={A.name}; names(1)=[]; names(1)=[];  % First two files arent airfoils
 
 % Code we want to run on Xfoil
 % for i=1:length(names)
-for i = 6006:2:7000
+for i = 6006:2:6008
 %     fname=char(names(i));   % formatting for ease
 %     name=fname(1:end-4);
 %     named(i)=string(name);

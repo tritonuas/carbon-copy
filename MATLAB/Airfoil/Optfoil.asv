@@ -1,7 +1,7 @@
 %% Airfoil Optimization
 % curly brackets so dims dont gotta match up
 % Erik Lovekin 1/2021
-% Graphing/File Access based on Kaelen Tan's Airfoil Comparison 2
+% Graphing/File Access/File Generation based on Kaelen Tan's Airfoil Comparison 2
 % Can't handle files that are not in a designation+number naming format
 % Only changes max camber
 % Uses slope between two points instead of gradient or derivative at one point
@@ -9,7 +9,7 @@
 
 % Make use of cell arrays instead of converting between double and string
 %% Function Name
-function best_airfoil = Optfoil(Cl, GuessAirfoil, clStep)
+function best_airfoil = Optfoil(Cl, GuessAirfoil) %, clStep)
 %% General
 %  clear all; clc;
 format loose;
@@ -17,15 +17,13 @@ format shortg;
 
 %% File directory stuff
 airfoil_dir_name = 'C:\TUAS\carbon-copy\MATLAB\Airfoil\airfoil_database\'; 
-% A=dir('airfoil_database');      % your folder of airfoils
- addpath(airfoil_dir_name);
-%  names={A.name}; names(1)=[]; names(1)=[];
+addpath(airfoil_dir_name);
 
 %% Define Starting Conditions
 % Cl = 0.9673;      %Improvement: make it able to accept either 'naca2212' or '2212'
 % trimAirfoil = GuessAirfoil;
 A = GuessAirfoil(5);
-initialA = 
+initialA = A;
 numA = str2double(A);
 CC = GuessAirfoil(7:end);
 if numA == 0
@@ -120,29 +118,43 @@ i = 1;
                  
                  numA = numA + i;
                  
-             else
-                 numA = numA + i;
-                     if numA == 0   %numB(numA == 0) = 0
-                         numB = 0;
-                     end
+              else          % If file does not exist, generate file
+                %%
+                % Set up the file names
+                airfoil_dir_name = "airfoil_database";
+                addpath(airfoil_dir_name);
+               
+                num = strAirfoil;
+
+                fid = fopen('xfoil_input.txt','w');   % create the inputs  
+                fprintf(fid,["naca "+num+"\n"]);
+                fprintf(fid,'pane\n');   % makes the airfoils nice
+                fprintf(fid,['oper\n']);fprintf(fid,['visc\n']);   % makes visc analysis w/ Re=4E5
+                fprintf(fid,['4e5\n']);fprintf(fid,['pacc\n']);
+                fprintf(fid,"airfoil_database/naca"+num+".pol\n\n");
+                fprintf(fid,'iter\n');fprintf(fid,'25\n'); % aint nobody got time fo 50
+                fprintf(fid,'aseq 0 20 0.5\n');% alpha 0 to 20 deg in 0.5 deg increment
+                fprintf(fid,'pacc\n');
+
+                cmd = 'xfoil.exe < xfoil_input.txt';   % running on xfoil
+                [status,result] = system(cmd);
+
+                fclose('all');
+                delete('xfoil_input.txt');
              end
                  
                  A = num2str(numA);
                  B = num2str(numB);
                  CC = num2str(numCC);   
     end
-    emptyCells = cellfun('isempty', E); 
-    E(all(emptyCells,2),:) = [];
-    disp(E);
-    
-    if ~isempty(E)
-    [mx, in] = max([E{:,3}]);
-    best_airfoil = E{in, 1};
-    disp(best_airfoil);
-    disp(mx);
-    else
-        fprintf('Unable to run because no airfoils with A above %s exist ending in %s%s. Try different GuessAirfoil.\n', A, B, CC);
-    end
+        emptyCells = cellfun('isempty', E); 
+        E(all(emptyCells,2),:) = [];
+        disp(E);
+
+        [mx, in] = max([E{:,3}]);
+        best_airfoil = E{in, 1};
+        disp(best_airfoil);
+        disp(mx);
 %% Plotting
 % figure;
 % hold on;
