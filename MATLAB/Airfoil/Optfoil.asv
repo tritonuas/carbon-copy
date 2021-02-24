@@ -11,7 +11,8 @@
 %% Function Name
 function best_airfoil = Optfoil(Cl, GuessAirfoil) %, clStep)
 %% General
-%  clear all; clc;
+
+close all;
 format loose;
 format shortg;
 
@@ -98,7 +99,12 @@ i = 1;
                             alpha_fill = alpha;                                        %Use data directly from file
                             cl_fill = cl;
                             clcd_fill = clcd;
-%                         end   
+%                         end  
+
+                        hold on;
+                        plot(alpha, clcd, 'r.-');
+                        xlabel('alpha'); ylabel('Cl/Cd'); title('Cl/Cd vs. Alpha');
+                        plot(alpha(cl == Close), clcd(cl == Close), 'b.', 'Markersize', 20)
 
 %% Calculate Slope
                      alpha_p = alpha_fill(cl_fill == Close);
@@ -106,24 +112,21 @@ i = 1;
                      x1 = alpha_p;
                      x2 = alpha_p + aStep;
                      y1 = clcd_p;
-                     y2 = clcd_fill(alpha_fill == x2);
-                     slope = (y2 - y1)/(x2 - x1);
+                     y2 = clcd_fill(alpha_fill == x2(1));
+                     slope = (y2 - y1(1))/(x2(1) - x1(1));
                      
                      E(j,:) = {strcat('naca',strAirfoil), slope, clcd_p};
-%                      P(j,:) = [strcat('naca',strAirfoil), alpha, cl,clcd]; % For plot at the end 
                      
                  if slope < 0 && numA < 9
                     i = 1;
                  elseif slope > 0 && numA > 0
                     i = -1;
                  else
-                     i = 0;
+                    i = 0;
                  end
                  
                  numA = numA + i;
-                 
-%              end
-                 
+                               
                  A = num2str(numA);
                  B = num2str(numB);
                  CC = num2str(numCC);   
@@ -138,8 +141,24 @@ i = 1;
         disp(mx);
         
 %% Plotting
-% figure;
-% hold on;
-% plot(P(:,2),P(:,4),'k-');
-% xlabel('Alpha'); ylabel('Cl/Cd'); title('Cl/Cd vs. Alpha');
+
+fID = fopen(strcat(airfoil_dir_name, best_airfoil, '.pol'), 'r');
+ D = textscan(fID,'%f %f %f %f %f %f %f', 'HeaderLines', 12);  %skips headers
+fclose(fID);
+
+alpha = D{:,1};                     %Alpha
+cl = D{:,2};                        %Coefficient of Lift
+cd = D{:,3};                        %Coefficient of Drag
+clcd = cl./cd;                      %drag efficiency
+
+%                     test = [alpha, cl, clcd];
+%                     disp(test);
+
+error = abs(cl-Cl);                 % What if there are two places where cl == Cl
+Close = cl(error == min(error));
+Close = Close(1);
+
+fclose('all');
+plot(alpha, clcd, 'k.-');
+plot(alpha(cl == Close), clcd(cl == Close), 'bo', 'Markersize', 10, 'Linewidth', 3)
 end
