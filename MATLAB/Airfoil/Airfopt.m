@@ -1,4 +1,4 @@
-function bestAirfoil = Airfopt(Cl, GuessAirfoil)
+function [bestAirfoil, bestClCd] = Airfopt(Cl, GuessAirfoil)
 
 airfoil_dir_name = 'C:\TUAS\carbon-copy\MATLAB\Airfoil\airfoil_database\';
 
@@ -10,17 +10,24 @@ end
 A = trimAirfoil(1);
 B = trimAirfoil(2);
 CC = trimAirfoil(3:end);
-if A == '0' && B ~= '0'
-    B = '0';               
-    fprintf('Using naca%s%s%s because location of max camber must = 0 when max camber = 0\n', A, B, CC);
-end
+
 numA = str2double(A);
 % numB = str2double(B);
 % numCC = str2double(CC);
 
 N = max([numA, (10 - numA)]);   % Number of iterations cap, only varying A
-data = struct('Airfoil', cell(N,2), 'Cl', cell(N,2), 'Close', cell(N,2), 'A', cell(N,2), 'ClCd', 0);
+
+NAME = cell(N,1);
+CAMBER = zeros(N,2)*NaN;
+CLOSE = zeros(N,2)*NaN;
+CLCD = zeros(N,2)*NaN;
+DA = zeros(N,1)*NaN;
+
 for i = 1:N
+    if A == '0' && B ~= '0'
+    B = '0';               
+    fprintf('Using naca%s%s%s because location of max camber must = 0 when max camber = 0\n', A, B, CC);
+    end
     count = 0;
     for j = [A, num2str(numA + 1)]
         count  = count + 1;
@@ -42,36 +49,37 @@ for i = 1:N
 
         fclose('all');
         
+        NAME{i} = ['naca' j B CC]; %Airfoil Name
+        CAMBER(i, count) = str2double(j); %A
+        CLOSE(i, count) = Close; % Cl Approximation
+        CLCD(i, count) = -clcd(cl == Close); % -Cl/Cd at Cl Approximation
         
-        data(i).Airfoil = ['naca' j B CC];
-        data(i).A(count) = str2double(j);
-        data(i).Cl = Cl;
-        data(i).Close(count) = Close;
-        data(i).ClCd(count) = clcd(cl == Close);
     end
 
-    x1 = data(i).A(1);
-    x2 = data(i).A(2);
-    y1 = data(i).ClCd(1);
-    y2 = data(i).ClCd(2);
+    x1 = CAMBER(i, 1);
+    x2 = CAMBER(i, 2);
+    y1 = CLCD(i, 1);
+    y2 = CLCD(i, 2);
     dA = (y2 - y1)/ (x2 - x1); % x2-x1 always = 1
+    DA(i) = dA;
     
     hold on
     plot(x1, y1, 'r.');
     xlabel('A'); ylabel('Cl/Cd'); 
     title(['Cl/Cd at Cl = ' num2str(Cl) ' vs max camber']);
-    axis([0 10 0 50]);
+    axis([0 10 -50 0]);
 
     if dA > 0 && numA < 9 
-        numA = numA + 1; 
+        numA = numA - 1; 
     elseif dA < 0 && numA > 0 
-        numA = numA - 1;
+        numA = numA + 1;
     end
  
  A = num2str(numA);
 end
-bestAirfoil = data.Airfoil(data.ClCd == max(data.ClCd(1)));
-
+[v, I] = min(CLCD(:,1));
+bestAirfoil = NAME(I);
+bestClCd = -v;
 end
 
 
