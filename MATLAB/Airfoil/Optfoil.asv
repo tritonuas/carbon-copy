@@ -11,7 +11,6 @@
 %% Function Name
 function best_airfoil = Optfoil(Cl, GuessAirfoil) %, clStep)
 %% General
-
 close all;
 format loose;
 format shortg;
@@ -26,11 +25,10 @@ addpath(airfoil_dir_name); % Don't think I'm using this right
 A = GuessAirfoil(5);
 numA = str2double(A);
 CC = GuessAirfoil(7:end);
-if numA == 0
+B = GuessAirfoil(6);
+if A == '0' && B ~= '0'
     B = '0';                    % Only allow location of max camber to be zero when max camber = 0
     fprintf('Using naca%s%s%s because location of max camber must = 0 when max camber = 0\n', A, B, CC);
-else
-    B = GuessAirfoil(6);
 end
 
 N = max([numA, (10 - numA)]);   % Number of iterations cap, only varying A
@@ -90,21 +88,17 @@ i = 1;
                     
                     fclose('all');
                     
-%                      cl_range = max(cl) - min(cl);
-%                      alpha_range = max(alpha) - min(cl);
-%                      clcd_range = max(clcd) - min(clcd);
-                        
-                            aStep = 0.5; %a(max(alpha) - min(alpha))/ (length(alpha)-1);                                            
+                    aStep = 0.5; %a(max(alpha) - min(alpha))/ (length(alpha)-1);                                            
                             
-                            alpha_fill = alpha;                                        %Use data directly from file
-                            cl_fill = cl;
-                            clcd_fill = clcd;
+                    alpha_fill = alpha;                                        %Use data directly from file
+                    cl_fill = cl;
+                    clcd_fill = clcd;
 %                         end  
 
-                        hold on;
-                        plot(alpha, clcd, 'r.-');
-                        xlabel('alpha'); ylabel('Cl/Cd'); title('Cl/Cd vs. Alpha');
-                        plot(alpha(cl == Close), clcd(cl == Close), 'b.', 'Markersize', 20)
+                    hold on;
+                    plot(alpha, clcd, 'r.-');
+                    xlabel('alpha'); ylabel('Cl/Cd'); title('Cl/Cd vs. Alpha');
+                    plot(alpha(cl == Close), clcd(cl == Close), 'b.', 'Markersize', 20)
 
 %% Calculate Slope
                      alpha_p = alpha_fill(cl_fill == Close);
@@ -112,7 +106,7 @@ i = 1;
                      x1 = alpha_p;
                      x2 = alpha_p + aStep;
                      y1 = clcd_p;
-                     y2 = clcd_fill(alpha_fill == x2(1));
+                     y2 = clcd_fill(alpha_fill == x2(1)); % naca2118
                      slope = (y2 - y1(1))/(x2(1) - x1(1));
                      
                      E(j,:) = {strcat('naca',strAirfoil), slope, clcd_p};
