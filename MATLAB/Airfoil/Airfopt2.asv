@@ -6,7 +6,6 @@ function [step] = Airfopt2(Cl, GuessAirfoil)
     elseif lower(GuessAirfoil(1:4)) == 'naca'
         trimAirfoil = GuessAirfoil(5:8);
     end
-    
     A = str2double(trimAirfoil(1));
     B = str2double(trimAirfoil(2));
     CC = str2double(trimAirfoil(3:end));
@@ -33,12 +32,9 @@ function [step] = Airfopt2(Cl, GuessAirfoil)
         if A+integerstep(1) >= 0 && A+integerstep(1) <= 8 
         A = A + integerstep(1);
         end
-        if B+integerstep(2) >= 0 && B+integerstep(2) <= 8
+        if B + integerstep(2) >= 0 && B + integerstep(2)<= 8
         B = B + integerstep(2);
-        end
-        if CC+integerstep(3) >= 0 && CC+integerstep(3) <= 30
-        CC = CC + integerstep(3);  
-        end
+        CC = CC + integerstep(3);         
     end
     
     final_airfoil = tested;
