@@ -41,7 +41,9 @@ function [Gradient, Hessian] = calc_Gradient_Hessian(Cl, A, B, CC, directory)
         for c = 1:4
             frstprtialderderivative{1,c,v} = negclcd{2,c,v} - negclcd{1,c,v};
         end
-        
+        v;
+        frstprtialderderivative;
+        frstprtialderderivative{1,1,v};
         Gradient(v,1) = frstprtialderderivative{1,1,v};
         for clm = 2:4
             Hessian(v,clm-1) = frstprtialderderivative{1,clm,v} - frstprtialderderivative{1,1,v}; %Hessian needs some work

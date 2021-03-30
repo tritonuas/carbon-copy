@@ -16,12 +16,11 @@ function nClCd = findclcd(CL, Airfoil, fdirectory)
      
 %     disp(Airfoil);% TEMPORARY FOR TESTING
 %     disp(Close);% TEMPORARY FOR TESTING
-     
     Close = Close(1);
 
     fclose('all');
-
     nClCd = -clcd(cl == Close); % -Cl/Cd at Cl Approximation
+    nClCd = nClCd(1);
     
     
 % delete([fdirectory, 'naca', Airfoil, '.pol']);% TEMPORARY FOR TESTING

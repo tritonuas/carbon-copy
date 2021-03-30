@@ -1,5 +1,5 @@
 function [step] = Airfopt2(Cl, GuessAirfoil)
-    airfoil_dir_name = 'C:\TUAS\carbon-copy\MATLAB\Airfoil\airfoil_database\';
+    airfoil_dir_name = 'airfoil_database\';
 
     if isnumeric(GuessAirfoil)
         trimAirfoil = num2str(GuessAirfoil);
@@ -26,8 +26,7 @@ function [step] = Airfopt2(Cl, GuessAirfoil)
         end
         [G, H] = calc_Gradient_Hessian(Cl, A, B, CC, airfoil_dir_name);
         
-        inverseH = inv(H);
-        step = -inverseH * G;
+        step = H\-G;
         integerstep = fix(step);
         
         if A+integerstep(1) >= 0 && A+integerstep(1) <= 8 
@@ -43,7 +42,7 @@ function [step] = Airfopt2(Cl, GuessAirfoil)
     
     final_airfoil = tested;
     disp(iter);
-    disp(final_airfoil);
+    disp("final_airfoil: " + final_airfoil);
     
 end
 
