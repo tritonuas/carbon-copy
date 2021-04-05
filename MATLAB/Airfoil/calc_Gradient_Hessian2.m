@@ -1,10 +1,13 @@
 function [Gradient, Hessian] = calc_Gradient_Hessian2(Cl, A, B, CC, directory)  
     Airfoils = cell(4,4);
     negclcd = cell(4,4);
-    frstprtialderderivative = cell(3,4);
+    frstprtialderivative = cell(3,4);
     Gradient = zeros(3,1);
     Hessian = zeros(3);
-    Airfoils{1,1} = [num2str(A), num2str(B),num2str(CC)];
+    Airfoils{1,1} = [A, B,CC];
+    Airfoils{1,2} = [A+1, B, CC];
+    Airfoils{1,3} = [A, B+1,CC];
+    Airfoils{1,4} = [A, B, CC+1];
     for v = 1:3 % three dimensions for debugging, 3rd index for arrays not necessary
                 %1 ==> A; 2 ==> B; 3 ==> CC
         r = 0;
@@ -40,12 +43,12 @@ function [Gradient, Hessian] = calc_Gradient_Hessian2(Cl, A, B, CC, directory)
             end
         end
         for c = 1:4
-            frstprtialderderivative{1,c} = negclcd{2,c} - negclcd{1,c};
+            frstprtialderivative{1,c} = negclcd{2,c} - negclcd{1,c};
         end
         
-        Gradient(v,1) = frstprtialderderivative{1,1};
+        Gradient(v,1) = frstprtialderivative{1,1};
         for clm = 2:4
-            Hessian(v,clm-1) = frstprtialderderivative{1,clm} - frstprtialderderivative{1,1}; %Hessian needs some work
+            Hessian(v,clm-1) = frstprtialderivative{1,clm} - frstprtialderivative{1,1}; %Hessian needs some work
         end
     end
      disp(Gradient);disp(Hessian);%TEMPORARY FOR TESTING
