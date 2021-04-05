@@ -18,10 +18,10 @@ function [MS, failed_plies, failed_side, failed_z, fail_mode, fail_tcs] ...
 
 %allowing the input of just a vector rather than a copied matrix
 if length(mat_strengths_t(1,:)) == 1
-    mat_strengths_t = mat_strengths_t*ones(1,length(stresses_top));
+    mat_strengths_t = mat_strengths_t*ones(1,length(stresses_top(1,:)));
 end
 if length(mat_strengths_c(1,:)) == 1
-    mat_strengths_c = mat_strengths_c*ones(1,length(stresses_top));
+    mat_strengths_c = mat_strengths_c*ones(1,length(stresses_top(1,:)));
 end
 
 %usage of faiilure criterion
@@ -55,9 +55,9 @@ for i = 1:length(MS(1,:))
                 failed_plies = ply_num(i);
                 failed_z = z_all(i);
                 if mod(i,2) == 0
-                    failed_side = 'Top';
+                    failed_side = "Top";
                 else
-                    failed_side = 'Bottom';
+                    failed_side = "Bottom";
                 end
                 if j == 1
                     fail_mode = "Fiber";
@@ -72,12 +72,12 @@ for i = 1:length(MS(1,:))
                     fail_tcs = "Compression";
                 end
             else
-                failed_plies(end+1) = ply_num;
+                failed_plies(end+1) = ply_num(i);
                 failed_z(end+1) = z_all(i);
                 if mod(i,2) == 0
-                    failed_side(end+1) = 'Top';
+                    failed_side(end+1) = "Top";
                 else
-                    failed_side(end+1) = 'Bottom';
+                    failed_side(end+1) = "Bottom";
                 end
                 if j == 1
                     fail_mode(end+1) = "Fiber";
