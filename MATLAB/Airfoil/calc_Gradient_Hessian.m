@@ -35,7 +35,7 @@ function [Gradient, Hessian, ClCd] = calc_Gradient_Hessian(Cl, A, B, CC, airfoil
             Airfoils{r,4,s} = [num2str(a), num2str(b), num2str(cc+1)];
 %                  disp(Airfoils); %TEMPORARY FOR TESTING
             for c = 1:4
-                clcd{r,c,s} = findclcd(Cl, Airfoils{r,c,s}, airfoil_dir_name);
+                clcd{r,c,s} = findclcd2(Cl, Airfoils{r,c,s}, airfoil_dir_name);
 %                 disp(clcd); %TEMPORARY FOR TESTING
             end
         end

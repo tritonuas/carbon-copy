@@ -1,14 +1,20 @@
-function ClCdplot(A,B,CC,ClCd)
+function ClCdplot(iter,aSet,bSet,ccSet,ClCd,Amax,Bmax,CCmax)
     hold on
-    scatter3(A,B,CC,40,ClCd,'filled');
+    if iter > 1
+        scatter3(aSet(iter-1),bSet(iter-1),ccSet(iter-1),40,ClCd(iter-1),'filled');
+    end
+    scatter3(aSet(iter),bSet(iter),ccSet(iter),40,ClCd(iter),'filled');
+    scatter3(aSet(iter),bSet(iter),ccSet(iter),25,ClCd(iter),'ro');
+    
     view(-31,14);
-    xlabel('Max Camber');
-    ylabel('Location of Max Camber');
-    zlabel('Max Thickness');
+    axis([0 Amax 0 Bmax 0 CCmax]);
+    xlabel('Max Camber (A)');
+    ylabel('Location of Max Camber (B)');
+    zlabel('Max Thickness (CC)');
+    title('ClCd vs. NACA Variables');
     
-    cb = colorbar;   % create and label the colorbar
+    c = colorbar;   % create and label the colorbar
     caxis([0,100]); 
-    clabel = 'ClCd';
-    
+    c.Label.String = 'ClCd';
     
 end

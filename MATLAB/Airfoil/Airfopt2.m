@@ -1,7 +1,8 @@
-function [Cl, best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
-    %airfoil_dir_name = 'airfoil_database\';
+function [best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
+%   airfoil_dir_name = 'airfoil_database\\specific_cl\\';
     addpath(airfoil_dir_name);
 
+    %% Standardize Input
     if isnumeric(GuessAirfoil)
         trimAirfoil = num2str(GuessAirfoil);
     elseif lower(GuessAirfoil(1:4)) == 'naca'
@@ -11,39 +12,38 @@ function [Cl, best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
     A = str2double(trimAirfoil(1));
     B = str2double(trimAirfoil(2));
     CC = str2double(trimAirfoil(3:end));
+    maxA = 7;
+    maxB = 7;
+    maxCC = 30;
     
-    if A > 7 || B > 7 || CC > 30
+    if A > maxA || B > maxB || CC > maxCC
         best_airfoil = 'Improper guess airfoil';
         ClCd = NaN;
     else
+        %% Prealocating Arrays
+        G = 1;
+        iter = 0;
+        maxiter = 20;
+        aSet = NaN * zeros(maxiter,1);
+        bSet = NaN * zeros(maxiter,1);
+        ccSet = NaN * zeros(maxiter,1);
+        tested = strings(maxiter,1);
+        ClCd = NaN * zeros(maxiter,1);
+        bounce = false;
         
-    G = 1;
-    iter = 0;
-    maxiter = 20;
-    tested = strings(1,maxiter);
-    condition = true;
-    
-        while max(abs(G)) > 0.1 && iter < maxiter && condition
+        
+        while max(abs(G)) > 0.1 && iter < maxiter && ~bounce
             iter = iter + 1;
-            disp(iter); %TEMPORARY FOR TESTING
-            Aval(iter) = A;
-            Bval(iter) = B;
-            CCval(iter) = CC;
+%             disp(iter); %TEMPORARY FOR TESTING
+            aSet(iter) = A;
+            bSet(iter) = B;
+            ccSet(iter) = CC;
             tested(iter) = string([num2str(A), num2str(B), num2str(CC)]);
-            disp(tested(iter));%TEMPORARY FOR TESTING
-    %         if A == 0 && B ~= 0 %BOUNDARY CASE
-    %             B = 0;               
-    %         end
+%             disp(tested(iter));%TEMPORARY FOR TESTING
 
-%             [G, H, ClCd(iter)] = calc_Gradient_Hessian(Cl, A, B, CC, airfoil_dir_name);
-            [G, H, ClCd] = calc_Gradient_Hessian(Cl, A, B, CC, airfoil_dir_name);
-            step = -H\G;%-inverseH * G;
-            integerstep = fix(step);
-%             disp(ClCd(iter));%TEMPORARY FOR TESTING
-            disp(step);%TEMPORARY FOR TESTING
-            disp(integerstep);%TEMPORARY FOR TESTING
+            [~, integerstep] = GHstep(Cl, A, B, CC, airfoil_dir_name);
             
-            ClCdplot(A,B,CC);
+%             ClCdplot(iter,aSet,bSet,ccSet,ClCd,maxA,maxB,maxCC);
 
             if A+integerstep(1) >= 0 && A+integerstep(1) <= 7 
                 A = A + integerstep(1);
@@ -54,16 +54,22 @@ function [Cl, best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
             if CC+integerstep(3) >= 0 && CC+integerstep(3) <= 30
                 CC = CC + integerstep(3);  
             end
-            if iter >= 2 && tested(iter) == tested(iter - 1)
-                condition = false;
-                tested(tested == "") = [];
-            end
-            if iter >= 3 && tested(iter) == tested(iter - 2)
-                % jumping between 2 airfoils
-            end
+            %% Test for Bouncing Between Airfoils
+%             if iter >= 2 && tested(iter) == tested(iter - 1) % stuck on one airfoil
+%                 bounce = true;
+%                 tested(tested == "") = [];
+%                 ClCd(isnan(ClCd)) = [];
+%             end
+%             if iter >= 3 && tested(iter) == tested(iter - 2) % jumping between 2 airfoils
+%                 bounce = true;
+%                 tested(tested == "") = [];
+%                 ClCd(isnan(ClCd)) = [];
+%             end
+        end
+        hold off
+        disp(tested);
         best_airfoil = tested(end);
-        ClCd = ClCd(end);
-        end  
+    end  
 end
 
 
