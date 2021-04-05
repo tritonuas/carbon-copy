@@ -14,6 +14,7 @@ function  ClCd = findclcd(Cl, Airfoil, airfoil_dir_name)
     error = abs(cl-Cl);                
     Close = cl(error == min(error));    
     Close = Close(1);
+
     
     ClCd = clcd(cl == Close);           % -Cl/Cd at Cl Approximation
     ClCd = ClCd(1);

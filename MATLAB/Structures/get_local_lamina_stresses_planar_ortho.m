@@ -3,13 +3,14 @@
 %%Author: Andrew Fletcher
 %%Email: afletche@ucsd.edu
 %
-%%@param material_props a vector defined as [E11 E22 G12 Nu12]
+%%@param material_props a vector defined as [E11; E22; G12; Nu12]
 %%@param thetas a vector of the angles of each lamina (in order)
 %%@param rad_or_deg a string of 'rad' or 'deg' specifying units for theta
 %%@param thicknesses a vector of the thickness of each ply
 %%@param mech_loading the column vector of loading [Nx;Ny;Nxy;Mx;My;Mxy]
 %%@param delta_T the change in temperature
 %%@param cte_mat_local the matrix of cte for each ply in a local frame
+%%of shape [cte1;cte2;cte12] by 
 %%@return local_stresses_bot the local stresses at the bottom of plies
 %%@return local_stresses_top the local stresses at the top of plies
 %%@return z_all a vector of the z-coords of the top and bot of all plies

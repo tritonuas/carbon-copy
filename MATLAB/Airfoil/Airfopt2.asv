@@ -1,7 +1,9 @@
-
+<<<<<<< HEAD
 function [best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
 %   airfoil_dir_name = 'airfoil_database\\specific_cl\\';
     addpath(airfoil_dir_name);
+
+>>>>>>> 779dc6a10835c75de0d5db271598178d4a9157d9
 
     %% Standardize Input
     if isnumeric(GuessAirfoil)
@@ -31,6 +33,11 @@ function [best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
         tested = strings(maxiter,1);
         ClCd = NaN * zeros(maxiter,1);
         bounce = false;
+        
+<<<<<<< HEAD
+=======
+        
+>>>>>>> 779dc6a10835c75de0d5db271598178d4a9157d9
         
         while max(abs(G)) > 0.1 && iter < maxiter && ~bounce
             iter = iter + 1;
@@ -66,6 +73,7 @@ function [best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
 %                 ClCd(isnan(ClCd)) = [];
 %             end
         end
+
         hold off
         disp(tested);
         best_airfoil = tested(end);

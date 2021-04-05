@@ -44,6 +44,7 @@ function [Gradient, Hessian, ClCd] = calc_Gradient_Hessian(Cl, A, B, CC, airfoil
         end
         
         Gradient(s,1) = frstprtialderivative{1,1,s};
+
         for clm = 2:4
             Hessian(s,clm-1) = frstprtialderivative{1,clm,s} - frstprtialderivative{1,1,s}; %Hessian needs some work
         end

@@ -40,7 +40,7 @@ addpath("Utils")
 addpath("Weight");
 addpath("Structures");
 addpath("tail");
-%addpath("Airfoil");
+addpath("Airfoil");
 %% Constants
 g = 9.81;                   %sea level Earth gravity
 density = 1.225;            %sea level air density
