@@ -26,10 +26,10 @@ end
 
 %allowing the input of just a vector rather than a copied matrix
 if length(mat_strengths_t(1,:)) == 1
-    mat_strengths_t = mat_strengths_t*ones(1,length(stresses_top));
+    mat_strengths_t = mat_strengths_t*ones(1,length(stresses_top(1,:)));
 end
 if length(mat_strengths_c(1,:)) == 1
-    mat_strengths_c = mat_strengths_c*ones(1,length(stresses_top));
+    mat_strengths_c = mat_strengths_c*ones(1,length(stresses_top(1,:)));
 end
 
 max_allow_t = mat_strengths_t./SF;
