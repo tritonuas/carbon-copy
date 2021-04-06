@@ -1,26 +1,27 @@
 
 function [best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
 %   airfoil_dir_name = 'airfoil_database\\specific_cl\\';
+%   GuessAirfoil of format 'nacaABCC';
     addpath(airfoil_dir_name);
 
     %% Standardize Input
-    if isnumeric(GuessAirfoil)
-        trimAirfoil = num2str(GuessAirfoil);
-    elseif lower(GuessAirfoil(1:4)) == 'naca'
-        trimAirfoil = GuessAirfoil(5:8);
-    end
-    
-    A = str2double(trimAirfoil(1));
-    B = str2double(trimAirfoil(2));
-    CC = str2double(trimAirfoil(3:end));
+%     if isnumeric(GuessAirfoil)
+%         trimAirfoil = num2str(GuessAirfoil);
+%     elseif lower(GuessAirfoil(1:4)) == 'naca'
+%         trimAirfoil = GuessAirfoil(5:8);
+%     end
+
+    A = GuessAirfoil(5);
+    B = GuessAirfoil(6);
+    CC = GuessAirfoil(7:8);
     maxA = 7;
     maxB = 7;
     maxCC = 30;
-    
-    if A > maxA || B > maxB || CC > maxCC
+
+    if str2double(A) > maxA || str2double(B) > maxB || str2double(CC) > maxCC
         best_airfoil = 'Improper guess airfoil';
         ClCd = NaN;
-    else
+    else  
         %% Prealocating Arrays
         G = 1;
         iter = 0;
@@ -31,28 +32,32 @@ function [best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
         tested = strings(maxiter,1);
         ClCd = NaN * zeros(maxiter,1);
         bounce = false;
-        
+       
         while max(abs(G)) > 0.1 && iter < maxiter && ~bounce
+            if length(CC) == 1
+                CC = ['0' CC];
+            end
+            
             iter = iter + 1;
 %             disp(iter); %TEMPORARY FOR TESTING
-            aSet(iter) = A;
-            bSet(iter) = B;
-            ccSet(iter) = CC;
-            tested(iter) = string([num2str(A), num2str(B), num2str(CC)]);
+            aSet(iter) = str2double(A);
+            bSet(iter) = str2double(B);
+            ccSet(iter) = str2double(CC);  %OK if doesn't have leading zero
+            tested(iter) = [A B CC];
 %             disp(tested(iter));%TEMPORARY FOR TESTING
 
-            [~, integerstep] = GHstep(Cl, A, B, CC, airfoil_dir_name);
+            [~, integerstep, ClCd] = GHstep(Cl, tested(iter), airfoil_dir_name);
             
-%             ClCdplot(iter,aSet,bSet,ccSet,ClCd,maxA,maxB,maxCC);
+            ClCdplot(iter,aSet,bSet,ccSet,ClCd,maxA,maxB,maxCC);
 
-            if A+integerstep(1) >= 0 && A+integerstep(1) <= 7 
-                A = A + integerstep(1);
+            if str2double(A)+integerstep(1) >= 0 && str2double(A)+integerstep(1) <= 7 
+                A = num2str(str2double(A) + integerstep(1));
             end
-            if B+integerstep(2) >= 0 && B+integerstep(2) <= 7
-                B = B + integerstep(2);
+            if str2double(B)+integerstep(2) >= 0 && str2double(B)+integerstep(2) <= 7
+                B = num2str(str2double(B) + integerstep(2));
             end
-            if CC+integerstep(3) >= 0 && CC+integerstep(3) <= 30
-                CC = CC + integerstep(3);  
+            if str2double(CC)+integerstep(3) >= 0 && str2double(CC)+integerstep(3) <= 30
+                CC = num2str(str2double(CC) + integerstep(3));  
             end
             %% Test for Bouncing Between Airfoils
 %             if iter >= 2 && tested(iter) == tested(iter - 1) % stuck on one airfoil

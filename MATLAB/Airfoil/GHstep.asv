@@ -1,4 +1,4 @@
-function [step, integerstep, ClCd] = GHstep(Cl, Airfoil, airfoil_dir_name)
+function [step, integerstep] = GHstep(Cl, Airfoil, airfoil_dir_name)
     
     A = Airfoil(1);
     B = Airfoil(2);
@@ -96,7 +96,7 @@ function [step, integerstep, ClCd] = GHstep(Cl, Airfoil, airfoil_dir_name)
            cc = num2str(str2double(CC) + 1);
        end
        
-       % Each row has airfoils necessary to calculate first partial derivative at Airfoil (r,1) 
+       % Each row has point necessary to calculate 
         Airfoils{r,1} = [a b cc];
         Airfoils{r,2} = [num2str(str2double(a)+1) b cc];
         Airfoils{r,3} = [a num2str(str2double(b)+1) cc];
@@ -121,8 +121,6 @@ function [step, integerstep, ClCd] = GHstep(Cl, Airfoil, airfoil_dir_name)
                 Hessian(r-1,c) = firstpartialderivatives(r,c) - firstpartialderivatives(1,c);
             end
         end
-        
-          ClCd = clcd(1,1);
           step = -Hessian\Gradient;
           integerstep = fix(step);
         
