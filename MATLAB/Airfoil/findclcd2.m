@@ -1,13 +1,13 @@
 function ClCd = findclcd2(Cl, Airfoil, airfoil_dir_name)
-%   airfoil_dir_name = airfoil_database\\specific_cl\\;
+%   airfoil_dir_name = 'airfoil_database\\specific_cl\\';
 
     fID = fopen(strcat(airfoil_dir_name, 'cl', num2str(Cl),'naca', Airfoil, '.pol'), 'r');
     if fID == -1 % If file does not exist, generate file
         fID = genXfoil2(Cl,Airfoil,airfoil_dir_name);
     end
     D = textscan(fID,'%f %f %f %f %f %f %f', 'HeaderLines', 12);  %skips headers
-    if cellfun(@isempty,D)
-        disp(Airfoil);
+    if cellfun(@isempty,D) %if data is empty, Xfoil didn't generate it
+        fprintf('\n Problem Airfoil: %s. Xfoil did not converge.\n',Airfoil);
     end
     fclose(fID);
 
