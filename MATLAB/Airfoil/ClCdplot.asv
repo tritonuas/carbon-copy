@@ -1,20 +1,16 @@
-function ClCdplot(iter, A, B, CC, ClCd, Amax, Bmax, CCmax)
-    
-    aSet(iter) = str2double(A);
-    bSet(iter) = str2double(B);
-    ccSet(iter) = str2double(CC);  %OK if doesn't have leading zero
-    ClCd(iter) = ClCd;
+function ClCdplot(iter, aSet, bSet, ccSet, clcdSet, ClCd, maxA, maxB, maxCC)
     
     hold on
-%     if iter > 1 %Cover last point's red outline
-%         scatter3(aSet(iter-1),bSet(iter-1),ccSet(iter-1),40,ClCd(iter-1),'filled'); 
-%     end
+    if iter > 1 %Cover last point's red outline
+        scatter3(aSet(iter-1),bSet(iter-1),ccSet(iter-1),40,clcdSet(iter-1),'filled'); 
+    end
     
     scatter3(aSet(iter),bSet(iter),ccSet(iter),40,ClCd(iter),'filled');
-%     scatter3(aSet(iter),bSet(iter),ccSet(iter),25,ClCd(iter),'ro');
+    scatter3(aSet(iter),bSet(iter),ccSet(iter),20,clcdSet(iter),'ro');
+%     scatter3(aSet(iter),bSet(iter),ccSet(iter),40,clcdSet(iter),'filled');
     
     view(-31,14);
-    axis([0 Amax 0 Bmax 0 CCmax]);
+    axis([0 maxA 0 maxB 0 maxCC]);
     xlabel('Max Camber (A)');
     ylabel('Location of Max Camber (B)');
     zlabel('Max Thickness (CC)');
