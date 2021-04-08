@@ -8,7 +8,7 @@ function ClCd = findclcd2(Cl, Airfoil, airfoil_dir_name)
     
     D = textscan(fID,'%f %f %f %f %f %f %f', 'HeaderLines', 12);  %skips headers
     if cellfun(@isempty,D) %if data is empty, set ClCd to zero to stop error
-%         fprintf('\n Problem Airfoil: %s. Xfoil did not converge.\n',Airfoil);
+        fprintf('\n Problem Airfoil: %s. Xfoil did not converge.\n',Airfoil);
         ClCd = 0;
     else
         %   alpha = D{1,1};                     %Alpha

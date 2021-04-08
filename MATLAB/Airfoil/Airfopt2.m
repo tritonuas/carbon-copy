@@ -30,7 +30,7 @@ function [best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
         aSet = NaN * zeros(maxiter,1);
         bSet = NaN * zeros(maxiter,1);
         ccSet = NaN * zeros(maxiter,1);
-        tested = strings(maxiter,1);
+        tested = cell(maxiter,1);
         ClCd = NaN * zeros(maxiter,1);
         bounce = false;
        
@@ -40,6 +40,7 @@ function [best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
 %             end
             
             iter = iter + 1;
+            
 %             disp(iter); %TEMPORARY FOR TESTING
 
             %% For Graphing
@@ -48,22 +49,41 @@ function [best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
             ccSet(iter) = str2double(CC);  %OK if doesn't have leading zero
             %%
             
-            tested(iter) = [A B CC];
-%             disp(tested(iter));%TEMPORARY FOR TESTING
+            tested{iter} = [A B CC];
+            disp(tested{iter});%TEMPORARY FOR TESTING
 
-            [~, integerstep, ClCd] = GHstep(Cl, tested(iter), airfoil_dir_name);
-            
-            ClCdplot(iter,aSet,bSet,ccSet,ClCd,maxA,maxB,maxCC);
+            [~, integerstep, ClCd] = GHstep(Cl, tested{iter}, airfoil_dir_name);
+%             disp(integerstep);%TEMPORARY FOR TESTING
+            disp(ClCd);%TEMPORARY FOR TESTING
+            ClCdplot(iter,A,B,CC,ClCd,maxA,maxB,maxCC);
 
             %% Update Values for Next Iteration
             if str2double(A)+integerstep(1) >= 0 && str2double(A)+integerstep(1) <= maxA 
                 A = num2str(str2double(A) + integerstep(1));
+            else
+                if str2double(A)+integerstep(1) < 0
+                    A = '0';
+                elseif str2double(A)+integerstep(1) > maxA 
+                    A = num2str(maxA);
+                end
             end
             if str2double(B)+integerstep(2) >= 0 && str2double(B)+integerstep(2) <= maxB
                 B = num2str(str2double(B) + integerstep(2));
+            else
+                if str2double(B)+integerstep(2) < 0
+                    B = '0';
+                elseif str2double(B)+integerstep(2) > maxA 
+                    B = num2str(maxB);
+                end
             end
             if str2double(CC)+integerstep(3) >= minCC && str2double(CC)+integerstep(3) <= maxCC
-                CC = num2str(str2double(CC) + integerstep(3));  
+                CC = num2str(str2double(CC) + integerstep(3)); 
+            else
+                if str2double(CC)+integerstep(3) < minCC
+                    CC = num2str(minCC);
+                elseif str2double(CC)+integerstep(3) > maxCC 
+                    CC = num2str(maxCC);
+                end
             end
             %% Test for Bouncing Between Airfoils
 %             if iter >= 2 && tested(iter) == tested(iter - 1) % stuck on one airfoil

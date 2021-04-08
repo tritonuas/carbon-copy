@@ -44,7 +44,7 @@ function [step, integerstep, ClCd] = GHstep(Cl, Airfoil, airfoil_dir_name)
             end
             
             clcd(r,c) = findclcd2(Cl, Airfoils{r,c},'airfoil_database\\specific_cl\\');
-            firstpartialderivatives(r,c) = clcd(r,c) - clcd(r,1); 
+            firstpartialderivatives(r,c) = (-clcd(r,c)) - (-clcd(r,1)); % negative so optimization minimizes
         end
     end
         firstpartialderivatives(:,1) = [];
