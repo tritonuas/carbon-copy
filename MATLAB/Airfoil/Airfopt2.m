@@ -57,7 +57,7 @@ function [best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
             ccSet(iter) = str2double(CC);  %OK if doesn't have leading zero
             clcdSet(iter) = ClCd;
     
-            ClCdplot(iter,aSet,bSet,ccSet,clcdSet,maxA,maxB,maxCC);
+            ClCdplot(Cl,GuessAirfoil,iter,aSet,bSet,ccSet,clcdSet,maxA,maxB,maxCC);
 
             %% Update Values for Next Iteration
             if str2double(A)+step(1) >= 0 && str2double(A)+step(1) <= maxA 
@@ -88,16 +88,16 @@ function [best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
                 end
             end
             %% Test for Bouncing Between Airfoils
-%             if iter >= 2 && tested(iter) == tested(iter - 1) % stuck on one airfoil
-%                 bounce = true;
-%                 tested(tested == "") = [];
-%                 ClCd(isnan(ClCd)) = [];
-%             end
-%             if iter >= 3 && tested(iter) == tested(iter - 2) % jumping between 2 airfoils
-%                 bounce = true;
-%                 tested(tested == "") = [];
-%                 ClCd(isnan(ClCd)) = [];
-%             end
+            if iter >= 2 && all(tested{iter} == tested{iter - 1}) % stuck on one airfoil
+                bounce = true;
+                tested(cellfun('isempty',tested)) = [];
+                ClCd(isnan(ClCd)) = [];
+            end
+            if iter >= 3 && all(tested{iter} == tested{iter - 2}) % jumping between 2 airfoils
+                bounce = true;
+                tested(cellfun('isempty',tested)) = [];
+                ClCd(isnan(ClCd)) = [];
+            end
         end
         hold off
         disp(tested);

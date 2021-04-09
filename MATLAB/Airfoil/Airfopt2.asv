@@ -17,7 +17,7 @@ function [best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
     maxA = 7;
     maxB = 7;
     maxCC = 30;
-    minCC = 10;
+    minCC = 0;
 
     if str2double(A) > maxA || str2double(B) > maxB || str2double(CC) > maxCC || str2double(CC) < minCC
         best_airfoil = 'Improper guess airfoil';
@@ -35,21 +35,21 @@ function [best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
         clcdSet = NaN * zeros(maxiter,1);
        
         while max(abs(G)) > 0.1 && iter < maxiter && ~bounce
-%             if length(CC) == 1 %Not necessary with minCC >= 10
-%                 CC = ['0' CC];
-%             end
+            if length(CC) == 1 %Not necessary with minCC >= 10
+                CC = ['0' CC];
+            end
             
             iter = iter + 1;
             
 %             disp(iter); %TEMPORARY FOR TESTING
             
             tested{iter} = [A B CC];
-            disp(tested{iter});%TEMPORARY FOR TESTING
+%             disp(tested{iter});%TEMPORARY FOR TESTING
 
 %             [~, step, ClCd] = GHstep(Cl, tested{iter}, airfoil_dir_name);
             [step, ClCd] = simplestep(Cl, tested{iter}, airfoil_dir_name);
-            disp(step);%TEMPORARY FOR TESTING
-            disp(ClCd);%TEMPORARY FOR TESTING
+%             disp(step);%TEMPORARY FOR TESTING
+%             disp(ClCd);%TEMPORARY FOR TESTING
             
             %% Plotting
             aSet(iter) = str2double(A);
@@ -57,7 +57,7 @@ function [best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
             ccSet(iter) = str2double(CC);  %OK if doesn't have leading zero
             clcdSet(iter) = ClCd;
     
-            ClCdplot(iter,aSet,bSet,ccSet,clcdSet,maxA,maxB,maxCC);
+            ClCdplot(Cl,GuessAirfoil,iter,aSet,bSet,ccSet,clcdSet,maxA,maxB,maxCC);
 
             %% Update Values for Next Iteration
             if str2double(A)+step(1) >= 0 && str2double(A)+step(1) <= maxA 
@@ -101,7 +101,9 @@ function [best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
         end
         hold off
         disp(tested);
-        best_airfoil = tested(end);
+        disp(clcdSet);
+        best_airfoil = tested(clcdSet == max(clcdSet));
+        best_airfoil = best_airfoil(1);
     end  
 
 end
