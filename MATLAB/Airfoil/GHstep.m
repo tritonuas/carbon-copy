@@ -52,7 +52,7 @@ function [step, integerstep, ClCd] = GHstep(Cl, Airfoil, airfoil_dir_name)
             if length(Airfoils{r,c}) == 3 % CC needs to be 2 digits, so put zero in front if missing
                 Airfoils{r,c} = [Airfoils{r,c}(1:2), '0', Airfoils{r,c}(3)];
             end
-            clcd(r,c) = findclcd2(Cl, Airfoils{r,c},'airfoil_database\\specific_cl\\');
+            clcd(r,c) = findclcd2(Cl, Airfoils{r,c},airfoil_dir_name);
             
             %(y2-y1)/(x2-x1), but (x2-x1) always = 1
             firstpartialderivatives(r,c) = clcd(r,c) - clcd(r,1);
@@ -72,7 +72,7 @@ function [step, integerstep, ClCd] = GHstep(Cl, Airfoil, airfoil_dir_name)
         for r = 2:4
             for c = 1:3
                 % Subtract first row from every other row
-                % %(y2-y1)/(x2-x1), but (x2-x1) always = 1
+                % (y2-y1)/(x2-x1), but (x2-x1) always = 1
                 Hessian(r-1,c) = firstpartialderivatives(r,c) - firstpartialderivatives(1,c);
             end
         end
