@@ -9,6 +9,7 @@ clc;
 format shorte;
 format compact;
 
+
 %% Input Conditions
 
 E1 = 2e7;
@@ -33,27 +34,31 @@ fail_crit = "max_stress";
 print_output = false;
 SF = 2;
 
-Nx = 200;
+Nx = 100;
 Ny = 0;
 Nxy = 0;
 Mx = 0;
-My = 0;
+My = 0.5;
 Mxy = 0;
 delta_T = 0;
 
 mech_loading = [Nx;Ny;Nxy;Mx;My;Mxy];
 
 %% Design vars
-thetas = symm([90]);
+thetas = symm([45 45]);
 thicknesses = ones(1:length(thetas))*thickness_per_ply;
 rad_or_deg = 'deg';
 theta_h = 0.1;  %deg
 
+[stresses_bot, stresses_top, z_all, ...
+    mid_strains_and_curvatures, thermal_loading, ABD] = ...
+    get_local_lamina_stresses_planar_ortho(mat_props, thetas, ...
+    rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec);
+
 % %% Objective
-tol = 1e-12;
+tol = 1e-6;
 
 %% Optimization
-
 
 thetas_hist = thetas;
 obj_hist = 1;
@@ -63,24 +68,26 @@ hess_hist = eye(length(thetas)/2);
 
 hess_init = eye(length(thetas)/2);
 iter = 0;
+start_time = cputime;
 while true
     iter = iter + 1;
     
-    for i = 1:length(thetas)
-        if thetas(i) > 90
-            thetas(i) = thetas(i) - 180;
-        elseif thetas(i) < -90
-            thetas(i) = thetas(i) + 180;
-        end
-    end
+%     for i = 1:length(thetas)
+%         if thetas(i) > 90
+%             thetas(i) = thetas(i) - 180;
+%         elseif thetas(i) < -90
+%             thetas(i) = thetas(i) + 180;
+%         end
+%     end
     
-    thetas_hist(iter,:) = thetas;  %keeping dv history
+    thetas_hist(iter, :) = thetas;  %keeping dv history
     
-    % model / analysis valuation
-    MS = CLPT(mat_props, thetas, rad_or_deg, thicknesses, mech_loading,...
-                        delta_T, cte_vec, fail_crit, mat_strengths_t, ...
-                        mat_strengths_c, SF, print_output);
-    obj_hist(iter) = -min(MS(:));
+    % model / analysis evaluation
+    [stresses_bot, stresses_top] = ...
+        get_local_lamina_stresses_planar_ortho(mat_props, thetas, ...
+        rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec);
+    obj_hist(iter) = norm(stresses_bot./(mat_props(1:3)*ones(1, length(thetas)))...
+        + stresses_top./(mat_props(1:3)*ones(1, length(thetas))));
 
     % preallocating for optimizer
     obj_grad = ones(1,length(thetas)/2);
@@ -88,15 +95,18 @@ while true
     for i = 1:length(thetas)/2
         thetas(i) = thetas(i) + theta_h;
         thetas = symm(thetas(1:length(thetas)/2));
-        MS_dist = CLPT(mat_props, thetas, rad_or_deg, thicknesses, ...
-            mech_loading, delta_T, cte_vec, fail_crit, mat_strengths_t, ...
-            mat_strengths_c, SF, print_output);
-        d_MS = min(min(MS_dist)) - min(min(MS));
+        [stresses_bot, stresses_top] = ...
+            get_local_lamina_stresses_planar_ortho(mat_props, thetas, ...
+            rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec);
+        obj_dist = norm(stresses_bot./(mat_props(1:3)*ones(1, length(thetas)))...
+            + stresses_top./(mat_props(1:3)*ones(1, length(thetas))));
+            d_obj = obj_dist - obj_hist(iter);
             
         thetas(i) = thetas(i) - theta_h;
         thetas = symm(thetas(1:length(thetas)/2));
-        obj_grad(i) = -d_MS/theta_h
+        obj_grad(i) = d_obj/theta_h;
     end
+    obj_grad = obj_grad';
     grad_hist(iter,:) = obj_grad;
     
     
@@ -104,11 +114,11 @@ while true
     if iter > 1
 %     if false
         d_obj_grad = obj_grad - grad_hist(iter-1);
-        obj_hess = diag(d_obj_grad./(pk*alpha));
+        obj_hess = abs(diag(d_obj_grad./(pk*alpha)));
     else
         obj_hess = hess_init;
     end
-    hess_hist(iter,:,:) = obj_hess;
+    hess_hist(:,:, iter) = obj_hess;
     
     % break condition
     obj_grad_norm = norm(obj_grad, 1);
@@ -124,52 +134,77 @@ while true
     alpha = 1;
     
     % update design variables
-    thetas = thetas + pk*alpha
+    thetas = thetas + symm(pk'*alpha);
 end
-
+end_time = cputime;
+run_time = end_time - start_time
 %% Output
+thetas
 figure(1);
-plot(thetas_hist)
+plot(thetas_hist(:,1:end/2))
+title("Layup Orientation Optimization History")
+xlabel("Iteration Number"); ylabel("Theta (degrees)");
+legend("Ply 1", "Ply 2")
 figure(2);
-plot(grad_hist)
-figure(3);
-plot(grad_norm_hist)
+plot(obj_hist)
 
-%% Test
-thetas = linspace(-90, 90, 5000);
-for i = 1:length(thetas)
-    MS = CLPT(mat_props, [thetas(i) thetas(i)], rad_or_deg, thicknesses, mech_loading,...
-    delta_T, cte_vec, fail_crit, mat_strengths_t, mat_strengths_c, SF, ...
-    print_output);
-    obj(i) = -min(min(MS));
-    
-    thetas_dist = [thetas(i)+theta_h thetas(i)+theta_h];
-    MS_dist = CLPT(mat_props, thetas_dist, rad_or_deg, thicknesses, ...
-        mech_loading, delta_T, cte_vec, fail_crit, mat_strengths_t, ...
-        mat_strengths_c, SF, print_output);
-    d_MS = min(min(MS_dist)) - min(min(MS));
-
-    obj_grad(i) = -d_MS/theta_h;
-end
-
-plot(obj)
-plot(obj_grad)
-
-%% CLPT Analysis Function Definition
-function [MS, failed_plies, failed_side, failed_z, fail_mode, fail_tcs] ...
-    = CLPT(mat_props, thetas, rad_or_deg, thicknesses, mech_loading,...
+%% Check MS
+MS = CLPT(mat_props, thetas, rad_or_deg, thicknesses, mech_loading,...
     delta_T, cte_vec, fail_crit, mat_strengths_t, mat_strengths_c, SF, ...
     print_output)
-[stresses_bot, stresses_top, z_all] = ...
-get_local_lamina_stresses_planar_ortho(mat_props, thetas, ...
-rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec);
 
-[MS, failed_plies, failed_side, failed_z, fail_mode, fail_tcs] ...
-= report_ply_margins(stresses_bot, stresses_top, z_all, ...
-fail_crit, mat_strengths_t, mat_strengths_c, SF, print_output);
-end
+%% Test
+% thetas = linspace(-90, 90, 500);
+% for i = 1:length(thetas)
+%     MS = CLPT(mat_props, [thetas(i) thetas(i)], rad_or_deg, thicknesses, mech_loading,...
+%     delta_T, cte_vec, fail_crit, mat_strengths_t, mat_strengths_c, SF, ...
+%     print_output);
+%     obj(i) = -min(min(MS));
+%     
+%     
+%     thetas_dist = [thetas(i)+theta_h thetas(i)+theta_h];
+%     MS_dist = CLPT(mat_props, thetas_dist, rad_or_deg, thicknesses, ...
+%         mech_loading, delta_T, cte_vec, fail_crit, mat_strengths_t, ...
+%         mat_strengths_c, SF, print_output);
+%     d_MS = min(min(MS_dist)) - min(min(MS));
+% 
+%     obj_grad(i) = -d_MS/theta_h;
+% %     obj_grad(i) = sum(MS_dist(:)) - sum(MS(:));
+% end
+% 
+% figure(4)
+% plot(thetas, obj)
+% figure(5)
+% plot(thetas, obj_grad)
 
-% %% Example CLPT Analysis
+%% Test2
+% thetas = linspace(-90, 90, 1000);
+% for i = 1:length(thetas)
+%     [stresses_bot, stresses_top] = ...
+%         get_local_lamina_stresses_planar_ortho(mat_props, [thetas(i) thetas(i)], ...
+%         rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec);
+%     obj(i) = norm(stresses_bot./(mat_props(1:3)*ones(1, 2))...
+%         + stresses_top./(mat_props(1:3)*ones(1, length(thetas(i)))));
+%     
+%     
+%     thetas_dist = [thetas(i)+theta_h thetas(i)+theta_h];
+%     [stresses_bot, stresses_top] = ...
+%         get_local_lamina_stresses_planar_ortho(mat_props, thetas_dist, ...
+%         rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec);
+%     obj_dist = norm(stresses_bot./(mat_props(1:3)*ones(1, 2))...
+%         + stresses_top./(mat_props(1:3)*ones(1, length(thetas(i)))));
+%     d_obj = obj_dist - obj(i);
+% 
+%     obj_grad(i) = d_obj/theta_h;
+% %     obj_grad(i) = sum(MS_dist(:)) - sum(MS(:));
+% end
+% 
+% figure(4)
+% plot(thetas, obj)
+% figure(5)
+% plot(thetas, obj_grad)
+
+%% Example CLPT Analysis
 % [stresses_bot, stresses_top, z_all, ...
 % mid_strains_and_curvatures, thermal_loading, ABD] = ...
 % get_local_lamina_stresses_planar_ortho(mat_props, thetas, ...

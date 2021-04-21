@@ -159,7 +159,7 @@ end
 %%CONTRAINT: TAIL SIZING
 %This is based off of Anderson's MAE 155A slides(see stability, last slide)
 C_HT = 0.8;       %Horizontal tail volume coefficient
-C_VT = 0.07;     %Vertical tail volume coefficient
+C_VT = 0.04;     %Vertical tail volume coefficient
 
 
 %% Function definition
@@ -258,7 +258,7 @@ while abs(derivative_cl_over_cd) > 0.001
         %get the zero-lift drag coeff for this S and velocity
         cd0(iterNum) = getZeroLiftDrag(density, viscosity, v(iterNum), ...
                    S(iterNum), chord, sFuse,lenFuse, sNose,lenNose,...
-                   sTail,cTail, sTailBoom,lenTailBoom);
+                   sTail,cTail, sTailBoom,lenTailBoom)
 
         %calculate velocity and lift coefficient
         v(iterNum) = -1;
@@ -350,7 +350,7 @@ disp("Stall speed: " + stall_speed);
 end
 % 
 
-%% Derivative based iteration solution, iterative wing area
+%% Nested velocity and wing area optimization, (derivative based)
 function [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
     = dbi_sol(cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sMinStruct, sMax, sNose, sTail, sTailBoom, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT) 
 %TODO still need to finish validating and cleaning up stuff that is not

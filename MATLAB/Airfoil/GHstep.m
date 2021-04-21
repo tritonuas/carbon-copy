@@ -46,7 +46,7 @@ function [step, integerstep, ClCd] = GHstep(Cl, Airfoil, airfoil_dir_name)
         Airfoils{r,2} = [num2str(str2double(a)+1) b cc];
         Airfoils{r,3} = [a num2str(str2double(b)+1) cc];
         Airfoils{r,4} = [a b num2str(str2double(cc)+1)];
-
+        
         for c = 1:4
             
             if length(Airfoils{r,c}) == 3 % CC needs to be 2 digits, so put zero in front if missing
@@ -56,6 +56,7 @@ function [step, integerstep, ClCd] = GHstep(Cl, Airfoil, airfoil_dir_name)
             
             %(y2-y1)/(x2-x1), but (x2-x1) always = 1
             firstpartialderivatives(r,c) = clcd(r,c) - clcd(r,1);
+            % Comment: there's no point in doing the first column
                 % first row is first partial derivatives at ABCC
                 % second row is first partial derivatives at (A+1)BCC
                 % third row is first partial derivatives at A(B+1)CC
@@ -77,8 +78,11 @@ function [step, integerstep, ClCd] = GHstep(Cl, Airfoil, airfoil_dir_name)
             end
         end
         
+        Gradient
+        Hessian
+        
           ClCd = clcd(1,1); %ClCd at ABCC
-          step = Hessian\Gradient; %Positive for now because using positive clcd values
+          step = Hessian\Gradient %Positive for now because using positive clcd values
           integerstep = fix(step); %Keep A B CC as integers, round step to be smaller
         
 %          disp(Airfoils);
