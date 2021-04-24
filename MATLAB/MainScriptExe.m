@@ -71,7 +71,7 @@ AR = wingSpan^2./S;  %Getting ARs for induced drag calculations
 ARMaster = AR;
 
 %Fuselage Requirements
-sFuse = 1;      %1 for carbon copy
+saFuse = 1;      %1 for carbon copy
 lenFuse = 1.2;  %1.2 for carbon copy
 
 %Tail Boom Requirement
@@ -83,11 +83,11 @@ tail_boom_radius = 0.0762/2;    %3 inch diameter converted to radius in m
 %%have these variables (guesses will be given from within the function)
 %%-1 means we do not have the information
 
-sNose = -1;
+saNose = -1;
 lenNose = -1;
 sTail = -1;
 cTail = -1;
-sTailBoom = -1;
+saTailBoom = -1;
 lenTailBoom = -1;
 
 %% Desired Parameters/Constraints
@@ -160,12 +160,12 @@ end
 %%CONTRAINT: TAIL SIZING
 %This is based off of Anderson's MAE 155A slides(see stability, last slide)
 C_HT = 0.8;       %Horizontal tail volume coefficient
-C_VT = 0.07;     %Vertical tail volume coefficient
+C_VT = 0.04;     %Vertical tail volume coefficient
 
 
 %% Function definition
 % outputs: function [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
-% inputs:  = subfunction_name(AR, ARMaster, G, S, SFTime, SMaster, additionalWaypointDist, avgChordReq, cTail, climbAngleReq, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, n, nStall, numSteps, radius, rootChordReq, sFuse, sMax, sMin, sMinStruct, sNose, sTail, sTailBoom, stallSpeed, sweepAngle, taperRatio, timeLimit, tipChordReq, totalTravelDist, velocity, velocityMax, velocityMin, velocityReq, viscosity, weight, wingSpan) 
+% inputs:  = subfunction_name(AR, ARMaster, G, S, SFTime, SMaster, additionalWaypointDist, avgChordReq, cTail, climbAngleReq, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, n, nStall, numSteps, radius, rootChordReq, saFuse, sMax, sMin, sMinStruct, saNose, sTail, saTailBoom, stallSpeed, sweepAngle, taperRatio, timeLimit, tipChordReq, totalTravelDist, velocity, velocityMax, velocityMin, velocityReq, viscosity, weight, wingSpan) 
 
 %Pick Method
 methods = ["DBI_ANA" "Iterative"];
@@ -174,35 +174,35 @@ sol = 0; %has a solution been found?)
 if find(methods == "DBI_ANA")
     % run the subfunction dbi_sol [with DBI for velocity v and wing area S]
     [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
-    = dbi_ana_sol(cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sMinStruct, sMax, sNose, sTail, sTailBoom, tail_boom_radius, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT);
+    = dbi_ana_sol(cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, sMinStruct, sMax, saNose, sTail, saTailBoom, tail_boom_radius, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT);
     sol = 1;
 end
 
 if find(methods == "DBI")
     % run the subfunction dbi_sol [with DBI for velocity v and wing area S]
     [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
-    = dbi_sol(cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sMinStruct, sMax, sNose, sTail, sTailBoom, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT);
+    = dbi_sol(cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, sMinStruct, sMax, saNose, sTail, saTailBoom, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT);
     sol = 1;
 end
 
 if find(methods == "DBI_it")
     % run the subfunction dbi_sol [same as before, iterative wing area]
     [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
-    = dbi_itS_sol(ARMaster, S, SMaster, cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT);
+    = dbi_itS_sol(ARMaster, S, SMaster, cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, saNose, sTail, saTailBoom, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT);
     sol = 1;
 end
 
 if find(methods == "Iterative")
     % run the subfunction iter_sol [same as before]
     [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
-    = iter_sol(ARMaster, S, SMaster, cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan, C_HT, C_VT);
+    = iter_sol(ARMaster, S, SMaster, cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, saNose, sTail, saTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan, C_HT, C_VT);
     sol = 1;
 end
 if find(methods == "Analytical")
     % run the outdated subfunction anal_sol
     % no comparison graphs
     [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
-    = anal_sol(cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan, C_HT, C_VT);
+    = anal_sol(cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, saNose, sTail, saTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan, C_HT, C_VT);
     sol = 1;
 end
 if sol == 0
@@ -211,7 +211,7 @@ end
 
 %% Derivative based iteration solution, iterative wing area
 function [clOverCd, v, cl, S, wing_loading, chord, AR, load_factor, stall_speed] ...
-    = dbi_ana_sol(cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sMinStruct, sMax, sNose, sTail, sTailBoom, tail_boom_radius, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT) 
+    = dbi_ana_sol(cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, sMinStruct, sMax, saNose, sTail, saTailBoom, tail_boom_radius, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT) 
 %TODO still need to finish validating and cleaning up stuff that is not
 %needed, and finish making the output print statements
 %TODO think about this from a controller standpoint, and how to add Kd and
@@ -256,21 +256,25 @@ while abs(derivative_cl_over_cd) > 0.001
     v(iterNum) = 10;
     while abs(v_guess - v(iterNum)) > 0.1
         v_guess = v(iterNum);
+        
+        saWing = S(iterNum)*2;
+        saTail = sTail*2;
         %get the zero-lift drag coeff for this S and velocity
         cd0(iterNum) = getZeroLiftDrag(density, viscosity, v(iterNum), ...
-                   S(iterNum), chord, sFuse,lenFuse, sNose,lenNose,...
-                   sTail,cTail, sTailBoom,lenTailBoom);
+                   S(iterNum), saWing, chord, saFuse,lenFuse, saNose,lenNose,...
+                   saTail,cTail, saTailBoom,lenTailBoom);
 
         %calculate velocity and lift coefficient
         v(iterNum) = -1;
         [S(iterNum), v(iterNum), cl(iterNum)] = minDragEq(v(iterNum),...
           density, S(iterNum), cd0(iterNum), wingSpan, lift, taperRatio, sweepAngle);
+        saWing = S(iterNum)*2;
       
         % calculate tail areas and tail boom length (and therefore area)
         [tail_area_h, tail_area_v, lenTailBoom] = find_tail_size(wingSpan, ...
-        S(end), chord(end), C_HT, C_VT, density, viscosity, v(end));
+        S(end), saWing, chord(end), C_HT, C_VT, density, viscosity, v(end));
         sTail = tail_area_h + tail_area_v;
-        sTailBoom = lenTailBoom*2*pi*tail_boom_radius;
+        saTailBoom = lenTailBoom*2*pi*tail_boom_radius;
     end
   
     
@@ -351,9 +355,9 @@ disp("Stall speed: " + stall_speed);
 end
 % 
 
-%% Derivative based iteration solution, iterative wing area
+%% Nested velocity and wing area optimization, (derivative based)
 function [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
-    = dbi_sol(cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sMinStruct, sMax, sNose, sTail, sTailBoom, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT) 
+    = dbi_sol(cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, sMinStruct, sMax, saNose, sTail, saTailBoom, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT) 
 %TODO still need to finish validating and cleaning up stuff that is not
 %needed, and finish making the output print statements
 %TODO think about this from a controller standpoint, and how to add Kd and
@@ -425,8 +429,8 @@ while abs(derivative_v) > 0.001
 
         %get the zero-lift drag coeff for this S and velocity
         cd0(SiterNum) = getZeroLiftDrag(density, viscosity, v_dbi(ViterNum), ...
-                    S_dbi(SiterNum), chord(SiterNum), sFuse,lenFuse, sNose,lenNose,...
-                    sTail,cTail, sTailBoom,lenTailBoom);
+                    S_dbi(SiterNum), chord(SiterNum), saFuse,lenFuse, saNose,lenNose,...
+                    sTail,cTail, saTailBoom,lenTailBoom);
 
         %get induced drag so we can later get cd
         k = getK(AR(SiterNum), taperRatio, sweepAngle);
@@ -543,7 +547,7 @@ end
 % 
 %% Derivative based iteration solution (original)
 function [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
-    = dbi_itS_sol(ARMaster, S, SMaster, cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT) 
+    = dbi_itS_sol(ARMaster, S, SMaster, cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, saNose, sTail, saTailBoom, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT) 
 %TODO still need to finish validating and cleaning up stuff that is not
 %needed, and finish making the output print statements
 %TODO think about this from a controller standpoint, and how to add Kd and
@@ -602,8 +606,8 @@ while abs(derivative) > 0.001
 
         %get the zero-lift drag coeff for this S and velocity
         cd0(i) = getZeroLiftDrag(density, viscosity, v_dbi(iterNum), ...
-                    S(i), chord(i), sFuse,lenFuse, sNose,lenNose,...
-                    sTail,cTail, sTailBoom,lenTailBoom);
+                    S(i), chord(i), saFuse,lenFuse, saNose,lenNose,...
+                    sTail,cTail, saTailBoom,lenTailBoom);
 
         %get induced drag so we can later get cd
         k = getK(AR(i), taperRatio, sweepAngle);
@@ -701,7 +705,7 @@ end
 % 
 %% Iterative solution
 function [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
-    = iter_sol(ARMaster, S, SMaster, cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan, C_HT, C_VT) 
+    = iter_sol(ARMaster, S, SMaster, cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, saNose, sTail, saTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan, C_HT, C_VT) 
 %declaring that I have these variables for use of the lift equation
 hasLift = 1;
 hasDensity = 1;
@@ -762,11 +766,12 @@ for j = 1:length(velocity)  %for every velocity...
             AR(i) = wingSpan^2/S(i);    %updating asepct ratio for new S
         end
 
-        %get the zero-lift drag coeff for this S and velocity
+        saWing = S(i)*2;
+        saTail = sTail*2;
         cd0(i) = getZeroLiftDrag(density, viscosity, velocity(j), ...
-                    S(i), chord(i), sFuse,lenFuse, sNose,lenNose,...
-                    sTail,cTail, sTailBoom,lenTailBoom);
-
+                   S(i), saWing, chord(i), saFuse,lenFuse, saNose,lenNose,...
+                   saTail,cTail, saTailBoom,lenTailBoom);
+               
         %get induced drag so we can later get cd
         k = getK(AR(i), taperRatio, sweepAngle);
         cdi(i) = cl(i)^2*k;
@@ -836,7 +841,7 @@ best_chord_sol = bestchord(maxOfMaxIndex);
 best_AR_sol = bestAR(maxOfMaxIndex);
 
 [tail_area_h, tail_area_v, tail_boom_length] = find_tail_size(wingSpan, ...
-    best_S_sol, best_chord_sol, C_HT, C_VT, density, viscosity, vel_sol);
+    best_S_sol, best_S_sol*2, best_chord_sol, C_HT, C_VT, density, viscosity, vel_sol);
 
 disp("----------------------------");
 disp("ITERATIVE SOLUTION");
@@ -861,7 +866,7 @@ end
 %% Analytic Solution
 %Note: this is old as of November 2020. Run at your own risk.
 function [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
-    = anal_sol(cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxLoadFactorStall, maxLoadFactorTurns, radius, sFuse, sNose, sTail, sTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan, C_HT, C_VT) 
+    = anal_sol(cTail, density, g, lenFuse, lenNose, lenTailBoom, lift, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, saNose, sTail, saTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan, C_HT, C_VT) 
 
 %Iterate until S guess is close to S calc, and eGuess is close to e calc
 %When comparing to the iterative solution, it appears that my assumption
@@ -901,11 +906,12 @@ for i = 1:length(velocity)
         else
             sWingGuess = s(i);
         end
+        saTail = sTail*2;
         wingChord = s(i)/wingSpan;
         %get zero-lift drag coeff for this S
         cd0(i) = getZeroLiftDrag(density, viscosity, velocity(i), ...
-        sWingGuess,wingChord, sFuse,lenFuse, sNose,lenNose, sTail,cTail, ...
-        sTailBoom,lenTailBoom);
+        sWingGuess,wingChord, saFuse,lenFuse, saNose,lenNose, saTail,cTail, ...
+        saTailBoom,lenTailBoom);
 
         %We want to solve for the wing area, so we state that we don't know it
         s(i) = -1;     %-1 means we don't have the information

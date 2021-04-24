@@ -26,7 +26,9 @@
 %%cTail = average chord of the tail
 
 % Ask andrew where to put the function head onto MainScript
-function [tail_area_h, tail_area_v, tail_boom_length] = find_tail_size(wingspan, wingarea, mean_geo_chord, C_HT, C_VT, density, viscosity, velocity)
+function [tail_area_h, tail_area_v, tail_boom_length] = ...
+    find_tail_size(wingspan, wingarea, saWing, mean_geo_chord, C_HT, ...
+    C_VT, density, viscosity, velocity)
 %% General
 
 format compact
@@ -77,19 +79,19 @@ for i = 1:length(lenTailBoom)   % Declaring the for loop that runs everything a 
 
     sWing = wingarea;
     cWing = 99999999999999999999999;
-    sFuse = 0;
+    saFuse = 0;
     lenFuse = 1; 
-    sNose = 0;
+    saNose = 0;
     lenNose = 1;
     sTail = S_v(i) + S_h(i);
+    saTail = sTail*2;
     cTail = -1;
-    sTailBoom = 2*pi*x_ach*0.0762; 
+    saTailBoom = 2*pi*x_ach*0.0762; 
     TailBoom_Length = x_ach;
     
     cd0 = getZeroLiftDrag(density, viscosity, velocity, ...
-    sWing,cWing, sFuse,lenFuse, sNose, lenNose, sTail,cTail, ...
-    sTailBoom, TailBoom_Length);
-
+    sWing, saWing,cWing, saFuse,lenFuse, saNose,lenNose, saTail,cTail, ...
+    saTailBoom, TailBoom_Length);
     
 
     Zero_Lift_Drag_Coeff(i) = cd0

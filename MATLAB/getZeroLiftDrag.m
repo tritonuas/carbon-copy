@@ -33,51 +33,56 @@
 %@param velocity the velocity to the flow relative to body
 %@param sWing the wetted area of the wings
 %@param cWing the average chord of the wings
-%@param sFuse the wetted area of the fuselage
+%@param saFuse the wetted area of the fuselage
 %@param lenFuse the length of the fuselage
-%@param sNose the wetted area of the nose
+%@param saNose the wetted area of the nose
 %@param lenNose the length of the nose
-%@param sTail the wetted area of the tail
+%@param saTail the wetted area of the tail
 %@param cTail the average chord of the tail
-%@param sTailBoom the wetted area of the tail boom
+%@param saTailBoom the wetted area of the tail boom
 %@param lenTailBoom the length of the tail boom
 %@return cD0 the parasite drag coefficient (zero-lift drag coefficient)
 function [cd0] = getZeroLiftDrag(density, viscosity, velocity, ...
-    sWing,cWing, sFuse,lenFuse, sNose,lenNose, sTail,cTail, ...
-    sTailBoom,lenTailBoom)
+    sWing, saWing,cWing, saFuse,lenFuse, saNose,lenNose, saTail,cTail, ...
+    saTailBoom,lenTailBoom)
 %guesses for a size plane Triton UAS would be using
 %only used if values are not given in parameters (input as -1)
 %Guesses are given based off of my roughish guesses for Fiber One
 if sWing == -1
     sWing = 2;         %all in m^2
 end
+
+if saWing == -1
+    saWing = 2*sWing;
+end
+
 if cWing == -1
     cWing = 0.6;
 end
 
-if sFuse == -1
-    sFuse = 0.4625;
+if saFuse == -1
+    saFuse = 0.4625;
 end
 if lenFuse == -1
     lenFuse = 0.8;   %m
 end
 
-if sNose == -1
-    sNose = 0.0325;
+if saNose == -1
+    saNose = 0.0325;
 end
 if lenNose == -1
     lenNose = 0.1;   %m
 end
 
-if sTail == -1
-    sTail = 0.42;
+if saTail == -1
+    saTail = 0.42;
 end
 if cTail == -1
     cTail = 0.2;   %m
 end
 
-if sTailBoom == -1
-    sTailBoom = 0.0997;
+if saTailBoom == -1
+    saTailBoom = 0.0997;
 end
 if lenTailBoom == -1
     lenTailBoom = 0.9;   %m
@@ -105,42 +110,42 @@ sweepAngle = 0;
 FFWingFunc = @(xOverC, tOverC, M, sweep)((1 + ...
     0.6/xOverC*tOverC + 100*tOverC^4) *...
     (1.34*M^0.18*(cos(sweepAngle))^0.28));
-FFFuseFunc = @(f)(1 + 30/f^3 + f/400);
+FFFuseFunc = @(f)(1 + 60/f^3 + f/400);
 FFNacelle = @(f)(1 + 0.35/f);
 fFunc = @(l, Amax)(l/sqrt(4/pi*Amax));      %this is just l/d
 
 FFWing = FFWingFunc(0.4, 0.12, M, 0);
 FFTail = FFWingFunc(0.4, 0.15, M, 0);
-fTailBoom = fFunc(lenTailBoom, ((sTailBoom/lenTailBoom/pi)/2)^2*pi);
+fTailBoom = fFunc(lenTailBoom, ((saTailBoom/lenTailBoom/pi)/2)^2*pi);
 FFTailBoom = FFFuseFunc(fTailBoom);
-fFuse = fFunc(lenFuse, ((sFuse/lenTailBoom/pi)/2)^2*pi);
+fFuse = fFunc(lenFuse, ((saFuse/lenTailBoom/pi)/2)^2*pi);
 FFFuse = FFFuseFunc(fFuse);
 FFFuseAlt = FFNacelle(fFuse);
-fNose = fFunc(lenNose, ((sNose/lenNose/pi)/2)^2*pi);
+fNose = fFunc(lenNose, ((saNose/lenNose/pi)/2)^2*pi);
 FFNose = FFFuseFunc(fNose);
 
 Q = 1.1;    %fudge factor
 
-areaRatioWing = 2*sWing/sWing;
-areaRatioFuse = sFuse/sWing;
-areaRatioNose = sNose/sWing;
-areaRatioTail = 2*sTail/sWing;
-areaRatioTailBoom = sTailBoom/sWing;
+areaRatioWing = saWing/sWing;
+areaRatioFuse = saFuse/sWing;
+areaRatioNose = saNose/sWing;
+areaRatioTail = saTail/sWing;
+areaRatioTailBoom = saTailBoom/sWing;
 
 if sWing == 0
     disp("Can't input a wing area of 0 because divide by 0 errors " + ...
         "in the getZeroLiftDrag function.")
 end
-if sFuse == 0
+if saFuse == 0
     FFFuse = 0;
 end
-if sNose == 0
+if saNose == 0
     FFNose = 0;
 end
-if sTail == 0
+if saTail == 0
     FFTail = 0;
 end
-if sTailBoom == 0
+if saTailBoom == 0
     FFTailBoom = 0;
 end
 

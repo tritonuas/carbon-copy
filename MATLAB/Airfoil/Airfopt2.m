@@ -26,7 +26,7 @@ function [best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
         %% Prealocating Arrays
         G = 1;
         iter = 0;
-        maxiter = 20;
+        maxiter = 50;
         tested = cell(maxiter,1);
         bounce = false;
         aSet = NaN * zeros(maxiter,1);
@@ -46,8 +46,8 @@ function [best_airfoil, ClCd] = Airfopt2(Cl, GuessAirfoil, airfoil_dir_name)
             tested{iter} = [A B CC];
 %             disp(tested{iter});%TEMPORARY FOR TESTING
 
-%             [~, step, ClCd] = GHstep(Cl, tested{iter}, airfoil_dir_name);
-            [step, ClCd] = simplestep(Cl, tested{iter}, airfoil_dir_name);
+            [~, step, ClCd] = GHstep(Cl, tested{iter}, airfoil_dir_name);
+%             [step, ClCd] = simplestep(Cl, tested{iter}, airfoil_dir_name);
 %             disp(step);%TEMPORARY FOR TESTING
 %             disp(ClCd);%TEMPORARY FOR TESTING
             

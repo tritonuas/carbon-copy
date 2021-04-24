@@ -44,8 +44,8 @@ for i = 1:length(values)
     eval(sprintf('%s = %d',variables(i),values(i)));
 end
 
-E1 = values(:,1)';
-E2 = values(:,2)';
+E1 = 2e7;
+E2 = 2e7;
 G12 = values(:,3)';
 Nu12 = values(:,4)';
 thickness_per_ply = values(:,5)';
