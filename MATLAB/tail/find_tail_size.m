@@ -87,10 +87,12 @@ for i = 1:length(lenTailBoom)   % Declaring the for loop that runs everything a 
     TailBoom_Length = x_ach;
     
     cd0 = getZeroLiftDrag(density, viscosity, velocity, ...
-    sWing,cWing, sFuse,lenFuse, sNose,lenNose, sTail,cTail, ...
+    sWing,cWing, sFuse,lenFuse, sNose, lenNose, sTail,cTail, ...
     sTailBoom, TailBoom_Length);
 
-    Zero_Lift_Drag_Coeff(i) = cd0;
+    
+
+    Zero_Lift_Drag_Coeff(i) = cd0
     
 end
 
