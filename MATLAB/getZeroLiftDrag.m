@@ -43,8 +43,8 @@
 %@param lenTailBoom the length of the tail boom
 %@return cD0 the parasite drag coefficient (zero-lift drag coefficient)
 function [cd0] = getZeroLiftDrag(density, viscosity, velocity, ...
-    sWing, saWing,cWing, saFuse,lenFuse, saNose,lenNose, saTail,cTail, ...
-    saTailBoom,lenTailBoom)
+    sWing, saWing,cWing, saFuse,lenFuse, saNose,lenNose, ...
+    saHS,cHS, saVS,cVS, saTailBoom,lenTailBoom)
 %guesses for a size plane Triton UAS would be using
 %only used if values are not given in parameters (input as -1)
 %Guesses are given based off of my roughish guesses for Fiber One
@@ -74,11 +74,18 @@ if lenNose == -1
     lenNose = 0.1;   %m
 end
 
-if saTail == -1
-    saTail = 0.42;
+if saHS == -2
+    saHS = 0.21;
 end
-if cTail == -1
-    cTail = 0.2;   %m
+if saVS == -2
+    saVS = 0.21;
+end
+
+if cHS == -1
+    cHS = 0.2;   %m
+end
+if cVS == -1
+    cVS = 0.2;   %m
 end
 
 if saTailBoom == -1
@@ -101,7 +108,8 @@ end
 cfWing = getCf(velocity, density, viscosity, cWing);
 cfFuse = getCf(velocity, density, viscosity, lenFuse);
 cfNose = getCf(velocity, density, viscosity, lenNose);
-cfTail = getCf(velocity, density, viscosity, cTail);
+cfHS = getCf(velocity, density, viscosity, cHS);
+cfVS = getCf(velocity, density, viscosity, cVS);
 cfTailBoom = getCf(velocity, density, viscosity, lenTailBoom);
 
 a = 343;    %Speed of sound
@@ -115,7 +123,8 @@ FFNacelle = @(f)(1 + 0.35/f);
 fFunc = @(l, Amax)(l/sqrt(4/pi*Amax));      %this is just l/d
 
 FFWing = FFWingFunc(0.4, 0.12, M, 0);
-FFTail = FFWingFunc(0.4, 0.15, M, 0);
+FFHS = FFWingFunc(0.4, 0.15, M, 0);
+FFVS = FFWingFunc(0.4, 0.15, M, 0);
 fTailBoom = fFunc(lenTailBoom, ((saTailBoom/lenTailBoom/pi)/2)^2*pi);
 FFTailBoom = FFFuseFunc(fTailBoom);
 fFuse = fFunc(lenFuse, ((saFuse/lenTailBoom/pi)/2)^2*pi);
@@ -129,7 +138,8 @@ Q = 1.1;    %fudge factor
 areaRatioWing = saWing/sWing;
 areaRatioFuse = saFuse/sWing;
 areaRatioNose = saNose/sWing;
-areaRatioTail = saTail/sWing;
+areaRatioHS = saHS/sWing;
+areaRatioVS = saVS/sWing;
 areaRatioTailBoom = saTailBoom/sWing;
 
 if sWing == 0
@@ -142,8 +152,11 @@ end
 if saNose == 0
     FFNose = 0;
 end
-if saTail == 0
-    FFTail = 0;
+if saHS == 0
+    FFHS = 0;
+end
+if saVS == 0
+    FFVS = 0;
 end
 if saTailBoom == 0
     FFTailBoom = 0;
@@ -151,8 +164,8 @@ end
 
 %Hwang method
 cd0 = Q*(cfWing*FFWing*areaRatioWing + cfFuse*FFFuse*areaRatioFuse + ...
-    cfNose*FFNose*areaRatioNose + cfTail*FFTail*areaRatioTail + ...
-    cfTailBoom*FFTailBoom*areaRatioTailBoom);
+    cfNose*FFNose*areaRatioNose + cfHS*FFHS*areaRatioHS + ...
+    cfVS*FFVS*areaRatioVS + cfTailBoom*FFTailBoom*areaRatioTailBoom);
 
 %Anderson method
 % cd0 = 1.25*(cfWing*areaRatioWing + cfFuse*areaRatioFuse + ...
