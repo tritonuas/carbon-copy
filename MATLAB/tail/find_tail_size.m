@@ -95,7 +95,7 @@ for i = 1:length(lenTailBoom)   % Declaring the for loop that runs everything a 
     sWing, saWing,cWing, saFuse,lenFuse, saNose,lenNose, saHS,cHS, ...
     saVS, cVS, saTailBoom, TailBoom_Length);
 
-    Zero_Lift_Drag_Coeff(i) = cd0;
+    Zero_Lift_Drag_Coeff(i) = cd0
     
 end
 

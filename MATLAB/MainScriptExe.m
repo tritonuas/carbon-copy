@@ -82,6 +82,7 @@ tail_boom_radius = 0.0762/2;    %3 inch diameter converted to radius in m
 %%Preparing for the getZeroLiftDrag function by stating that we do not 
 %%have these variables (guesses will be given from within the function)
 %%-1 means we do not have the information
+
 saNose = -1;
 lenNose = -1;
 tail_area_h = -1;
