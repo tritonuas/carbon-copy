@@ -242,6 +242,7 @@ while abs(derivative_cl_over_cd) > 0.001
     if S(iterNum) > sMax
          S(iterNum) = sMax;
     end
+    saWing = S(iterNum)*2;
     
     % calculate parameters based on S (chord, AR)
     chord = S(iterNum)/wingSpan;   %from max cl checker
@@ -255,13 +256,10 @@ while abs(derivative_cl_over_cd) > 0.001
     v(iterNum) = 10;
     while abs(v_guess - v(iterNum)) > 0.1
         v_guess = v(iterNum);
-        
-        saWing = S(iterNum)*2;
-        saTail = sTail*2;
         %get the zero-lift drag coeff for this S and velocity
         cd0(iterNum) = getZeroLiftDrag(density, viscosity, v(iterNum), ...
                    S(iterNum), saWing, chord, saFuse,lenFuse, saNose,lenNose,...
-                   saTail,cTail, saTailBoom,lenTailBoom);
+                   sTail,cTail, saTailBoom,lenTailBoom);
 
         %calculate velocity and lift coefficient
         v(iterNum) = -1;
@@ -766,10 +764,13 @@ for j = 1:length(velocity)  %for every velocity...
         end
 
         saWing = S(i)*2;
-        saTail = sTail*2;
+        %get the zero-lift drag coeff for this S and velocity
+%         cd0(i) = getZeroLiftDrag(density, viscosity, velocity(j), ...
+%                     S(i), saWing, chord(i), saFuse,lenFuse, saNose,lenNose,...
+%                     sTail,cTail, saTailBoom,lenTailBoom);
         cd0(i) = getZeroLiftDrag(density, viscosity, velocity(j), ...
                    S(i), saWing, chord(i), saFuse,lenFuse, saNose,lenNose,...
-                   saTail,cTail, saTailBoom,lenTailBoom);
+                   sTail,cTail, saTailBoom,lenTailBoom);
                
         %get induced drag so we can later get cd
         k = getK(AR(i), taperRatio, sweepAngle);
@@ -905,7 +906,7 @@ for i = 1:length(velocity)
         else
             sWingGuess = s(i);
         end
-        saTail = sTail*2;
+        saTail = 
         wingChord = s(i)/wingSpan;
         %get zero-lift drag coeff for this S
         cd0(i) = getZeroLiftDrag(density, viscosity, velocity(i), ...
