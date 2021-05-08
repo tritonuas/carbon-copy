@@ -1,7 +1,11 @@
 function AlphaData(alpha,modairfoil_filename, inc)
     % Generate and save data for set of alpha
+    if exist('alphadata.pol','file') == 2
+        delete('alphadata.pol');%so Xfoil can write new data there
+    end
     fid = fopen('xfoil_input.txt','w');
     fprintf(fid, ['load\n', modairfoil_filename,'\n']);% loads modified airfoil coordinates
+%     fprintf(fid, ['naca 2212\n']);%TESTING
     fprintf(fid,'pane\n');   % makes the airfoils nice
     fprintf(fid,'oper\n');
     fprintf(fid,['visc\n', '4e5\n']);  % makes visc analysis w/ Re=4E5

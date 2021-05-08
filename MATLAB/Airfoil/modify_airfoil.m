@@ -1,14 +1,27 @@
+% xfoil doesn't write over old modairfoil.dat with new coordinates
+% Better to delete xfoilinput.txt or just clear contents? Same for modairfoil.dat
 function modify_airfoil(Airfoil_Specs, modairfoil_filename)
-    % Get naca airfoil approximating current airfoil (rounding etc.)
+    %% Get naca airfoil approximating current airfoil (rounding etc.)
         roundA = num2str(round(100*Airfoil_Specs(1)));
+            if length(roundA) > 1
+                roundA = '9';
+            end
         roundB = num2str(round(10*Airfoil_Specs(2)));
+            if length(roundB) > 1
+                roundB = '9';
+            end
         roundC = num2str(round(100*Airfoil_Specs(3)));
-        if length(roundC) == 1
-            roundC = ['0' roundC];
-        end
+            if length(roundC) == 1
+                roundC = ['0' roundC];
+            elseif length(roundC) > 2
+                roundC = '99';
+            end
         naca = [roundA roundB roundC];
 
-    % Modify naca airfoil using TSET and HIGH
+    %% Modify naca airfoil using TSET and HIGH
+        if exist(modairfoil_filename,'file') == 2
+            delete(modairfoil_filename); %so Xfoil can write new data there
+        end
         fid = fopen('xfoil_input.txt','w');   % create the inputs file 
         fprintf(fid,['naca ', naca, '\n']); %loads rounded airfoil
         fprintf(fid,'gdes\n');   % opens gdes routine

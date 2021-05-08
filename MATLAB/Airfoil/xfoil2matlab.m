@@ -53,4 +53,5 @@ for i = 6006:2:6008
 
     fclose('all');
     delete('xfoil_input.txt');
+    
 end

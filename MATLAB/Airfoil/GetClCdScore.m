@@ -1,5 +1,8 @@
 function [ClCdScore, alpha] = GetClCdScore(Cl,modairfoil_filename)
     % Generate and save data for Cl
+        if exist('setCldata.pol','file') == 2
+            delete('setCldata.pol'); %so Xfoil can write new data there
+        end
         fid = fopen('xfoil_input.txt','w');
         fprintf(fid,['load\n', modairfoil_filename, '\n']);
         fprintf(fid,'pane\n');   % makes the airfoils nice
@@ -24,10 +27,11 @@ function [ClCdScore, alpha] = GetClCdScore(Cl,modairfoil_filename)
             alpha = 0;
             ClCdScore = 0;
         else
-            alpha = clData{1,1};                     %Alpha
-            cl = clData{1,2};                        %Coefficient of Lift
-            cd = clData{1,3};                        %Coefficient of Drag
+            alpha = clData{1,1}(1);                     %Alpha
+            cl = clData{1,2}(1);                        %Coefficient of Lift
+            cd = clData{1,3}(1);                        %Coefficient of Drag
             ClCdScore = cl/cd;                       %drag efficiency
         end
+        
         fclose('all');
 end
