@@ -3,6 +3,7 @@ function [StallScore, maxAlpha, maxClCd] = BFGetStallScore(modairfoil_filename,i
         delete('alphadata.pol');%so Xfoil can write new data there
     end
     
+    in
     tol = inc/10;%tolerance to make == not act up
     
     fid = fopen('xfoil_input.txt','w');
@@ -37,7 +38,8 @@ function [StallScore, maxAlpha, maxClCd] = BFGetStallScore(modairfoil_filename,i
     maxAlpha = alpha(aclcd == maxClCd);
     dA1 = (aclcd(abs(maxAlpha+inc-alpha) < tol)-aclcd(abs(maxAlpha-alpha) < tol))/inc; %(y2-y1)/(x2-x1) first derivative
     dA2 = (aclcd(abs(maxAlpha+2*inc-alpha) < tol)-aclcd(abs(maxAlpha+inc-alpha) < tol))/inc; %(y3-y2)/(x3-x2)
-    StallScore = (dA2-dA1)/inc;%second derivative
+    ddA = (dA2-dA1)/inc;%second derivative
+    StallScore = -1/ddA;
 
     figure;
     hold on

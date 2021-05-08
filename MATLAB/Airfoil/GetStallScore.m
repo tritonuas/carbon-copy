@@ -2,7 +2,7 @@ function [StallScore, alphas, aclcds] = GetStallScore(alpha,modairfoil_filename)
  
     Aconverged = false;
     Aiter = 1;
-    inc = 0.7; % delta alpha for Xfoil
+    inc = 0.5; % delta alpha for Xfoil
     Acon = 0.01;% Converged once Astep below this 
     Amaxiter = 50;
     maxStep = 5;
@@ -25,6 +25,9 @@ function [StallScore, alphas, aclcds] = GetStallScore(alpha,modairfoil_filename)
             aclcd = acl./acd;                           %drag efficiency
         %end
 disp(aclcd);
+if length(aclcd) < 3
+    pause
+end
         fclose('all');
 
         aclcds(Aiter) = aclcd(1); %for plotting

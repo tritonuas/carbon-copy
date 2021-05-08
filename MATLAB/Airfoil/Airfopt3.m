@@ -117,10 +117,9 @@ function [best_airfoil_specs, ClCd] = Airfopt3(Cl, GuessAirfoil)
 %             end
             [ClCdScore(i), alpha] = GetClCdScore(Cl,modairfoil_filename); % Find ClCd Score and starting alpha
 
-            [StallScore(i), alphas, Aclcds] = GetStallScore(alpha,modairfoil_filename); % Find stall score 
-
-            % Plot alpha optimization to check
-
+%             [StallScore(i),~,~] = GetStallScore(alpha,modairfoil_filename); % Find stall score 
+            [StallScore(i),~,~] = BFGetStallScore(modairfoil_filename);
+            
             F(i) = ClCdScore(i) + StallWeight*StallScore(i); %Add Cl/Cd score and stall score
         end
         ClCds(iter) = ClCdScore(1); %ClCd at ABCD
