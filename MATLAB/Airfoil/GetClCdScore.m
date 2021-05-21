@@ -30,7 +30,7 @@ function [ClCdScore, alpha] = GetClCdScore(Cl,modairfoil_filename)
             alpha = clData{1,1}(1);                     %Alpha
             cl = clData{1,2}(1);                        %Coefficient of Lift
             cd = clData{1,3}(1);                        %Coefficient of Drag
-            ClCdScore = cl/cd;                       %drag efficiency
+            ClCdScore = cl/cd;                          %drag efficiency
         end
         
         fclose('all');

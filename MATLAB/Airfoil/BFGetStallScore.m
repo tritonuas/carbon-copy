@@ -3,12 +3,11 @@ function [StallScore, maxAlpha, maxClCd] = BFGetStallScore(modairfoil_filename)
         delete('alphadata.pol');%so Xfoil can write new data there
     end
     
-    inc = 0.5;%increment size
-    tol = inc/10;%tolerance to make == not act up
+    inc = 0.5; %increment size
+    tol = inc/10; %tolerance to make == not act up
     
     fid = fopen('xfoil_input.txt','w');
     fprintf(fid, ['load\n', modairfoil_filename,'\n']);% loads modified airfoil coordinates
-%     fprintf(fid, ['naca 2212\n']);%TESTING
     fprintf(fid,'pane\n');   % makes the airfoils nice
     fprintf(fid,'oper\n');
     fprintf(fid,['visc\n', '4e5\n']);  % makes visc analysis w/ Re=4E5
@@ -39,14 +38,14 @@ function [StallScore, maxAlpha, maxClCd] = BFGetStallScore(modairfoil_filename)
     dA1 = (aclcd(abs(maxAlpha+inc-alpha) < tol)-aclcd(abs(maxAlpha-alpha) < tol))/inc; %(y2-y1)/(x2-x1) first derivative
     dA2 = (aclcd(abs(maxAlpha+2*inc-alpha) < tol)-aclcd(abs(maxAlpha+inc-alpha) < tol))/inc; %(y3-y2)/(x3-x2)
     ddA = (dA2-dA1)/inc;%second derivative
-    StallScore = -1/ddA;
+    StallScore = -1/ddA;%change to reflect larger trend
 
-    figure;
-    hold on
-    plot(alpha, aclcd);
-    xlabel('alpha');
-    ylabel('Cl/Cd');
-    plot(maxAlpha, maxClCd, 'o');
-    hold off
+%     figure;
+%     hold on
+%     plot(alpha, aclcd);
+%     xlabel('alpha');
+%     ylabel('Cl/Cd');
+%     plot(maxAlpha, maxClCd, 'o');
+%     hold off
     
 end
