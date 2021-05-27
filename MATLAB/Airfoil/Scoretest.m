@@ -2,6 +2,7 @@ A = 0.01;
 B = 0.2; 
 C = 0.15; 
 D = .25; 
+Cl = 0.2;
 dX = 0.01;
 alpha = 0;
 modairfoil_filename = 'C:\\TUAS\\carbon-copy\\MATLAB\\Airfoil\\modairfoil.dat';
@@ -22,11 +23,14 @@ Airfoil_Specs = [A B C D;...         %a
                  A B C+dX D+dX;...   %n
                  A B C D+2*dX];      %o             %bounces between two alphas
              
-%                Airfoil_Specs = [A B+dX C D];
+               Airfoil_Specs = [A B+dX C D];
              
 for i = 1:height(Airfoil_Specs) %For each airfoil: find score
     disp(Airfoil_Specs(i,:));
             modify_airfoil(Airfoil_Specs(i,:),modairfoil_filename); % Create coordinates of airfoil
+            [ClCdScore(i), alpha] = GetClCdScore(Cl,modairfoil_filename);
+%             disp(alpha);
             [StallScore(i), alphas, Aclcds] = GetStallScore(alpha,modairfoil_filename); % Find stall score 
-            [BFStallScore(i), maxAlpha, maxClCd] = BFGetStallScore(modairfoil_filename);
+%             [BFStallScore(i), maxAlpha, maxClCd] = BFGetStallScore(modairfoil_filename);
 end
+disp(StallScore);

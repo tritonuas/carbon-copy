@@ -11,38 +11,43 @@
 function [best_airfoil_specs, ClCd] = Airfopt3(Cl, GuessAirfoil)
 %% Set starting values
     dX = 0.01; %in derivative calculations, (x2-x1)
-    Amin = 0; %parameter maxes shouldn't be necessary
-    Amax = 0.1 - 3*dX; %allows calculation of second derivative
-    Bmin = 0;          
-    Bmax = 1 - 3*dX;
-    Cmin = 0.1;
-    Cmax = 1 - 3*dX;
-    Dmin = 0;
-    Dmax = 1 - 3*dX;
+    minA = 0; 
+    maxA = 0.1;
+    minB = 0.2;          
+    maxB = 0.6;
+    minC = 0.1;
+    maxC = 0.3;
+    minD = 0.2;
+    maxD = 0.6;
+    minCm = -0.1;
+    maxCm = 0;
+    
+    %Constraint Functions
+        bowl = @(x,y,z) 1/(x-y) - 1/(x-z);%y = min, z = max
     
     A = str2double(GuessAirfoil(1))/100;% max camber: chord ratio
-        if A > Amax
-            A = Amax;
-        elseif A < Amin %don't need to check min as long as min == 0
-            A = Amin;
+        if A > maxA
+            A = maxA;
+        elseif A < minA %don't need to check min as long as min == 0
+            A = minA;
         end
     B = str2double(GuessAirfoil(2))/10;% location of max camber : chord ratio
-        if B > Bmax
-            B = Bmax;
-        elseif B < Bmin %don't need to check min as long as min == 0
-            B = Bmin;
+        if B > maxB
+            B = maxB;
+        elseif B < minB %don't need to check min as long as min == 0
+            B = minB;
         end
     C = str2double(GuessAirfoil(3:4))/100;% max thickness : Chord ratio
-        if C > Cmax
-            C = Bmax;
-        elseif C < Cmin %don't need to check min as long as min == 0
-            C = Cmin;
+        if C > maxC
+            C = maxB;
+        elseif C < minC %don't need to check min as long as min == 0
+            C = minC;
         end
     D = 0.3; % loc of max thickness : chord ratio, always 0.3 for naca numbering
-        if D > Dmax %Starting D should always be within range
-            D = Dmax;
-        elseif D < Dmin %don't need to check min as long as min == 0
-            D = Dmin;
+        if D > maxD %Starting D should always be within range
+            D = maxD;
+        elseif D < minD %don't need to check min as long as min == 0
+            D = minD;
         end     
         
     iter = 0; %iteration counter
@@ -54,11 +59,11 @@ function [best_airfoil_specs, ClCd] = Airfopt3(Cl, GuessAirfoil)
     StallWeight = 1;
     
     %% Preallocating arrays
-    As = NaN*zeros(maxiter,1); %not possible if maxiter doesn't exist
-    Bs = NaN*zeros(maxiter,1);
-    Cs = NaN*zeros(maxiter,1);
-    Ds = NaN*zeros(maxiter,1);
-    ClCds = NaN*zeros(maxiter,1);
+%     As = NaN*zeros(maxiter,1); %not possible if maxiter doesn't exist
+%     Bs = NaN*zeros(maxiter,1);
+%     Cs = NaN*zeros(maxiter,1);
+%     Ds = NaN*zeros(maxiter,1);
+%     ClCds = NaN*zeros(maxiter,1);
     
     while ~converged && iter <= maxiter
         iter = iter + 1;
@@ -69,8 +74,9 @@ function [best_airfoil_specs, ClCd] = Airfopt3(Cl, GuessAirfoil)
         Cs(iter,1) = C;
         Ds(iter,1) = D;
         
-        %% Find Hessian and Gradient
-            %Create matrix of all airfoils necessary:
+       bunch = [As(iter,1) Bs(iter,1) Cs(iter,1) Ds(iter,1)];
+       fprintf(['Iteration ', num2str(iter),': ' num2str(bunch), '\n']);
+            %% Create matrix of all airfoils necessary:
                 %Will be cell array of double arrays
                     %  ABCD      (A+dX)BCD       A(B+dX)CD       AB(C+dX)D       ABC(D+dX)
                     % (A+dX)BCD  (A+2dX)BCD     (A+dX)(B+dX)CD  (A+dX)B(C+dX)D  (A+dX)BC(D+dX)
@@ -100,32 +106,51 @@ function [best_airfoil_specs, ClCd] = Airfopt3(Cl, GuessAirfoil)
                          A B C+dX D+dX;...   %n
                          A B C D+2*dX];      %o
                                                 
+        %% Generate ClCd and Stall Propterty Data
         % Preallocating Arrays
         ClCdScore = NaN*zeros(15,1);
         StallScore = NaN*zeros(15,1);
         F = NaN*zeros(15,1);
         fpds = NaN*zeros(5,4);
-        Gradient = NaN*zeros(4,1);
+%         Gradient = NaN*zeros(4,1);
         Hessian = NaN*zeros(4,4);
         
         for i = 1:15 %For each airfoil: find score
-            disp(Airfoil_Specs(i,:)); %TESTING
+%             disp(Airfoil_Specs(i,:)); %TESTING
+            fprintf(['\tTesting Airfoil: ', num2str(Airfoil_Specs(i,:)), '\n']);            
+            
+            tic
             modify_airfoil(Airfoil_Specs(i,:),modairfoil_filename); % Create coordinates of airfoil
+            modtime(i,iter) = toc;
 %             if i == 1 %This airfoil is better than last iteration, Specs(1,:) is airfoil being analyzed
 %                 %delete(bestairfoil_filename);
 %                 [success, message]= copyfile(modairfoil_filename,bestairfoil_filename);
 % %                 disp(success); disp(message);%TESTING
 %             end
-            [ClCdScore(i), ~] = GetClCdScore(Cl,modairfoil_filename); % Find ClCd Score and starting alpha
-
-%             [StallScore(i),~,~] = GetStallScore(alpha,modairfoil_filename); % Find stall score 
+            
+            tic
+            [ClCdScore(i,1), alpha, Cm(i,1)] = GetClCdScore(Cl,modairfoil_filename); % Find ClCd Score and starting alpha
+            clcdtime(i,iter) = toc;
+            
+            tic
+% %             [StallScore(i,1),~,~] = GetStallScore(alpha,modairfoil_filename); % Find stall score 
 %             [StallScore(i),~,~] = BFGetStallScore(modairfoil_filename);
             StallScore(i) = 0;
+            stalltime(i,iter) = toc;
             
-            F(i) = ClCdScore(i) + StallWeight*StallScore(i); %Add Cl/Cd score and stall score
+            % Objective Function
+            F(i) = ClCdScore(i,1) + StallWeight*StallScore(i,1)...
+                    + bowl(Airfoil_Specs(i,1), minA, maxA) + bowl(Airfoil_Specs(i,2), minB, maxB)...
+                    + bowl(Airfoil_Specs(i,3), minC, maxC) + bowl(Airfoil_Specs(i,4), minD, maxD)...
+                    + bowl(Cm(i,1), minCm, maxCm);
+            
+            fprintf(['\t\tObjective Score: ', num2str(F(i)), '\n']);
+            fprintf(['\t\tTiming: modairfoil = ', num2str(modtime(i,iter)), 'sec, ClCdScore = ', num2str(clcdtime(i,iter)), 'sec, StallScore = ', num2str(stalltime(i,iter)), 'sec\n']);
         end
+        
         ClCds(iter) = ClCdScore(1); %ClCd at ABCD
-                
+        Objective(iter) = F(1);    
+        
 %         Assemble matrix:        
 %             a b c d e   
 %             b f g h i
@@ -158,47 +183,46 @@ function [best_airfoil_specs, ClCd] = Airfopt3(Cl, GuessAirfoil)
             % fourth row is first partial derivatives at AB(C+1)D
             % fifth row is first partial derivatives at ABC(D+1)
 
-        Gradient(:,1) = fpds(1,:);
+        Gradient(:,iter) = fpds(1,:);
             % Gradient is column matrix of all first partial derivatives at
             % Airfoil in (1,1)
             
         Hessian(1:4,:) = (fpds(2:5,:) - fpds(1,:))/dX;
             % Subtract first row from every other row
-            % (y2-y1)/(x2-x1), but (x2-x1) always = 1
+            % (y2-y1)/(x2-x1)
        
-        step = Hessian\Gradient; %Positive for now because using positive clcd values
-
+        step = abs(Hessian)\-Gradient(:,iter);
         %% Implement step
         if max(abs(step)) < con
             converged = true;
         else
             A = A + step(1);
-            if A > Amax
-                A = Amax;
-            elseif A < Amin
-                A = Amin;
-            end
+%             if A > maxA
+%                 A = maxA;
+%             elseif A < minA
+%                 A = minA;
+%             end
             
             B = B + step(2);
-            if B > Bmax
-                B = Bmax;
-            elseif B < Bmin
-                B = Bmin;
-            end
+%             if B > maxB
+%                 B = maxB;
+%             elseif B < minB
+%                 B = minB;
+%             end
             
             C = C + step(3);
-            if C > Cmax
-                C = Cmax;
-            elseif C < Cmin
-                C = Cmin;
-            end
+%             if C > maxC
+%                 C = maxC;
+%             elseif C < minC
+%                 C = minC;
+%             end
             
             D = D + step(4);
-            if D > Dmax
-                D = Dmax;
-            elseif D < Dmin
-                D = Dmin;
-            end
+%             if D > maxD
+%                 D = maxD;
+%             elseif D < minD
+%                 D = minD;
+%             end
         end
     end
 best_airfoil_specs = [As(end) Bs(end) Cs(end) Ds(end)];
@@ -208,6 +232,53 @@ figure
 plot(1:iter,ClCds);
 xlabel('Iteration');
 ylabel('Cl/Cd');
+
+figure
+plot(1:iter,As);
+xlabel('Iteration');
+ylabel('Max Camber');
+
+figure
+plot(1:iter,Bs);
+xlabel('Iteration');
+ylabel('Location of Max Camber');
+
+figure
+plot(1:iter,Cs);
+xlabel('Iteration');
+ylabel('Max Thickness');
+
+figure
+plot(1:iter,Ds);
+xlabel('Iteration');
+ylabel('Location of Max Thickness');
+
+disp([As Bs Cs Ds]);
+
+figure
+plot(1:iter,Gradient(1,:));
+xlabel('Iteration');
+ylabel('A Gradient');
+
+figure
+plot(1:iter,Gradient(2,:));
+xlabel('Iteration');
+ylabel('B Gradient');
+
+figure
+plot(1:iter,Gradient(3,:));
+xlabel('Iteration');
+ylabel('C Gradient');
+
+figure
+plot(1:iter,Gradient(4,:));
+xlabel('Iteration');
+ylabel('D Gradient');
+
+figure
+plot(1:iter,Objective);
+xlabel('Iteration');
+ylabel('Objective');
 
 end
 
