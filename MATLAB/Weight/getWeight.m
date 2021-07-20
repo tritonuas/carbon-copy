@@ -2,6 +2,9 @@
 %%body + wing weight, which depends on area S.
 %%Weight = area*(s*4+d*t*2)*g, where g = 9.81, area = wing area
 %%s = layup, (d, t) = density / thickness of divinycell
+
+% calculates the weight of the 
+
 function[weight] = getWeight(area,length)
 
 g = 9.81; %acc due to gravity
@@ -44,3 +47,10 @@ g = 9.81; %acc due to gravity
    
     weight = m*g;
     
+    % tasks/notes
+    
+    % replace line 57 through 60 with a new method to calculate weight
+    % function that calculates weight, cg, and mass moment of inertia
+    % get_tail = get_wing
+    % convert ad opt into matlab
+    %convert to a function 

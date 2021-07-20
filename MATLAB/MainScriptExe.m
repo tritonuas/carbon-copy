@@ -261,7 +261,7 @@ while abs(derivative_cl_over_cd) > 0.001
         saTailBoom = lenTailBoom*2*pi*tail_boom_radius;
     end
   
-    
+    q = 1/2*density*v(iterNum)^2;
     
     %Placing a maximum lift coefficient due to airfoil constraints
     if cl(iterNum) > maxClCruise

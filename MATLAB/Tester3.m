@@ -11,6 +11,7 @@ saTail = 2*(0.082369 + 0.14259002); %% m^2
 cTail = -1;
 saTailBoom = 2*pi*(0.0762/2);
 TailBoom_Length = 1;
+lenNose = -1;
 
 
 cd0 = getZeroLiftDrag(density, viscosity, velocity, ...
