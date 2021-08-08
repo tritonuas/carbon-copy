@@ -386,45 +386,35 @@ for j = 1:length(velocity)  %for every velocity...
     
     for i = 1:length(S) %for every wing area...
 
-        
-% Empirical Formula Method
         % Temporary Inputs for compute_weight function
-%         battery = 1;
-%         htail_ar =  2;
-%         vtail_ar = 1;
-%         htail_taper = 0.45;
-%         vtail_taper = 0.45;
-%         wing_t_over_c = .12;
-%         htail_t_over_c = .15;
-%         vtail_t_over_c = .15;
-%         htail_sweep = 0;
-%         vtail_sweep = 0;
-%         fus_wet = 1;
-%         tail_len = .2;
-%         fuse_len = 1.1;
-%         fus_str_depth = .2;
-%         nIter = 3;
-%         q = 1/2*density*velocity(j)^2;
-%         empty_struct_fudge = 3.0218;
-%         misc_weight_fudge = 0.05;
-%         payload = 16;
-%         tail_area_h = .4;
-%         tail_area_v = .2;
-% 
-%         weight = compute_weight(S(i), battery, AR(i), taperRatio, sweepAngle, nIter,...
-%                          tail_area_h, htail_ar, htail_taper, htail_sweep, htail_t_over_c,...
-%                          tail_area_v, vtail_t_over_c, vtail_sweep, vtail_ar, vtail_taper, ...
-%                          fus_wet, tail_len, fuse_len, fus_str_depth, q, wing_t_over_c,....
-%                          empty_struct_fudge, misc_weight_fudge, payload);
-%         lift = weight; 
+        battery = 1;
+        htail_ar =  2;
+        vtail_ar = 1;
+        htail_taper = 0.45;
+        vtail_taper = 0.45;
+        wing_t_over_c = .12;
+        htail_t_over_c = .15;
+        vtail_t_over_c = .15;
+        htail_sweep = 0;
+        vtail_sweep = 0;
+        fus_wet = 1;
+        tail_len = .2;
+        fuse_len = 1.1;
+        fus_str_depth = .2;
+        nIter = 3;
+        q = 1/2*density*velocity(j)^2;
+        empty_struct_fudge = .01;
+        misc_weight_fudge = 0.05;
+        payload = 16;
+        tail_area_h = .;
+        tail_area_v = .2;
 
-
-
-weight = compute_weight(S(i), battery, AR(i), taperRatio, sweepAngle, nIter,...
-                          tail_area_h, htail_ar, htail_taper, htail_sweep, htail_t_over_c,...
-%                          tail_area_v, vtail_t_over_c, vtail_sweep, vtail_ar, vtail_taper, ...
-%                          fus_wet, tail_len, fuse_len, fus_str_depth, q, wing_t_over_c,....
-%                          empty_struct_fudge, misc_weight_fudge, payload);
+        weight = compute_weight(S(i), battery, AR(i), taperRatio, sweepAngle, nIter,...
+                         tail_area_h, htail_ar, htail_taper, htail_sweep, htail_t_over_c,...
+                         tail_area_v, vtail_t_over_c, vtail_sweep, vtail_ar, vtail_taper, ...
+                         fus_wet, tail_len, fuse_len, fus_str_depth, q, wing_t_over_c,...
+                         empty_struct_fudge, misc_weight_fudge, payload);
+        lift = weight; 
         
         %get the lift coefficient necessary for this S and velocity
         [lift, density, velocity(j), S(i), cl(i)] = liftEq(hasLift,lift,...

@@ -1,0 +1,13 @@
+
+function [w_vtail] = weight_vtail(load_fact_ult,gross, tail_area_v, vtail_t_over_c, vtail_sweep, vtail_ar, vtail_taper, q)
+
+    mti_weight = 0.224809; % metric (N) to imperial (poundforce) 
+    mti_area = 10.7639; % m^2 to ft^2
+    mti_press = 0.0208854;  % pascals to pound force per square foot
+
+    w_vtail = 0.073*(load_fact_ult*gross*mti_weight)^(0.376)*...
+    (q*mti_press)^(0.122)*(tail_area_v*mti_area)^(0.873)*...
+    (100*vtail_t_over_c/cos(vtail_sweep))^(-0.49)*...
+    (vtail_ar/cos(vtail_sweep)^2)^(0.357)*vtail_taper^(0.039)*...
+    1/mti_weight;
+end
