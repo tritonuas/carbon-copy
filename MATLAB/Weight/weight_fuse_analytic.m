@@ -1,3 +1,20 @@
+%%Authors: Allyson Chen & Kevin Vo
+%%Emails:  aechen@ucsd.edu    k1vo@ucsd.edu
+%%Calculates the weight of the the fuselage
+
+%%Variable Legend
+%%w_fuse = weight of the fuselage
+%%fuse_height = fuselage height
+%%fuse_width = fuselage width
+%%fuse_length = fuselage length
+%%num_plies = number of layers of carbon epoxy composite
+%%num_bulkheads = number of bulkheads
+%%area_fraction_bulkhead = area fraction of bulkhead
+%%density_carbon_epoxy = density of the carbon epoxy composiute
+%%density_plywood = density of plywood
+%%fudgefactor = fudgefactor
+
+
 function w_fuse = weight_fuse_analytic(density_carbon_epoxy, num_plies, num_bulkheads, t_bulkhead, area_fraction_bulkhead, density_plywood, fuse_height, fuse_width, fuse_length, fudgefactor)
 
     bulkhead_area_density = density_plywood*num_bulkheads*area_fraction_bulkhead*t_bulkhead; % kg/m^2   

@@ -2,6 +2,18 @@
 %%Emails:  aechen@ucsd.edu    k1vo@ucsd.edu
 %%Calculates the weight of the plane analytical from the sum of its
 %%components
+%%This program is a MATLAB version of CHT = (xach-xcg)Sh/cS and CVT = (xach-xcg)Sv/bS
+
+%% Misc Variables
+
+%%battery = battery weight
+%%payload = payload weight
+%%q = dynamic pressure
+%%empty_struct_fudge = fudgefactor 
+%%misc_weight_fudge_factor
+%%load_fact_ult = load factor
+%%gross = gross weight
+%%new gross weight
 
 %% Wing Variables
 
@@ -30,23 +42,10 @@
 %%vtail_taper = taper of vertical tail
 
 %% Fuselage Variables
-%%w_fuse = weight of the fuselage
-%%fus_wet = wetted surface area of fuselage
-%%fuse_len = length of fuselage
-%%fuse_str_depth = 
-
-
-%% Misc Variables
-
-%%battery = battery weight
-%%payload = payload weight
+%%fus_wet = 
 %%tail_len = length of tail
-%%q = dynamic pressure
-%%empty_struct_fudge = fudgefactor 
-%%misc_weight_fudge_factor
-%%load_fact_ult = load factor
-%%gross = gross weight
-%%new gross weight
+%%fuse_len = length of fuselage
+%%fuse_str_depth =
 
 
 function [gross] = compute_weight(S, battery, AR, taperRatio, sweepAngle, load_fact_ult,...

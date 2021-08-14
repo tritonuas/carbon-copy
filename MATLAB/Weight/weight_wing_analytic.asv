@@ -1,20 +1,18 @@
 %%Authors: Allyson Chen & Kevin Vo
 %%Emails:  aechen@ucsd.edu    k1vo@ucsd.edu
-%%Calculates the weight of the the wing
+%%Calculates the weight of the the vertical tail
 
 %%Variable Legend
 %%num_spar = number of spars
 %%num_plies = number of plies
 %%spar_width = width of the spar
 %%S = wing area
-%%wingspan = wingspan
 %%density_balsa = density of balsa wood
 %%density_carbon_epoxy = density of carbon epoxy composite
-%%density_divinycell = density of divinycell (aerospace foam)
+%%density_divinycell = density of divinycell (aerospace
 %%t_tip = thickness of wing tip
 %%t_root = thickness of wing root
 %%t_divinycell = thickness of divinycell (aerospace foam)
-%%fudgefactor = fudgefactor
 
 
 function w_wing = weight_wing_analytic(S, num_spar,  spar_width, density_balsa, t_divinycell, density_divinycell, num_plies, density_carbon_epoxy, t_tip, t_root, wingspan, fudge_factor)
