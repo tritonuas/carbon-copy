@@ -432,7 +432,7 @@ t_divinycell = 0.003175;
 density_divinycell = 80;
 num_plies_wing = 2;
 density_carbon_epoxy = 1600;
-t_tip = 0.12*(2*chord(i)*taperRatio)/(1+taperRatio);
+t_tip = 0.12*(2*chord*taperRatio)/(1+taperRatio);
 t_root = t_tip/taperRatio;
 wingspan = wingSpan;
 fudge_factor = 1;
@@ -466,7 +466,9 @@ vtail_fudge_factor = 1;
 fuse_fudge_factor = 1;
 
 
-weight = compute_weight_analytic(battery, payload, S(i), num_spar_wing,  spar_width_wing, density_balsa, t_divinycell, density_divinycell,...
+
+
+weight = compute_weight_analytic(battery, payload, S, num_spar_wing,  spar_width_wing, density_balsa, t_divinycell, density_divinycell,...
     num_plies_wing, density_carbon_epoxy, t_tip, t_root, wingspan, fudge_factor,...
     num_spar_htail, spar_width_htail, num_plies_htail, s_h, density_blue_foam, t_htail_root, t_htail_tip, htail_span,...
     num_spar_vtail, spar_width_vtail, num_plies_vtail, s_v, t_vtail_root, t_vtail_tip, vtail_span,...

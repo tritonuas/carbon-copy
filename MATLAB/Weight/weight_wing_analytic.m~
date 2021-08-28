@@ -19,7 +19,6 @@
 
 function w_wing = weight_wing_analytic(S, num_spar,  spar_width, density_balsa, t_divinycell, density_divinycell, num_plies, density_carbon_epoxy, t_tip, t_root, wingspan, fudge_factor)
     
-    t_carbon_epoxy = 0.0003;
     carbon_epoxy_area_density = density_carbon_epoxy*num_plies*t_carbon_epoxy; % kg/m^2 
     divinycell_area_density = t_divinycell*density_divinycell; % kg/m^2
     spar_length_density = (t_tip+t_root/2)*num_spar*density_balsa*spar_width; % kg/m
