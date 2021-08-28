@@ -22,7 +22,7 @@ function w_wing = weight_wing_analytic(S, num_spar,  spar_width, density_balsa, 
     t_carbon_epoxy = 0.0003;
     carbon_epoxy_area_density = density_carbon_epoxy*num_plies*t_carbon_epoxy; % kg/m^2 
     divinycell_area_density = t_divinycell*density_divinycell; % kg/m^2
-    spar_length_density = (t_tip+t_root/2)*num_spar*density_balsa*spar_width; % kg/m
+    spar_length_density = ((t_tip+t_root)/2)*num_spar*density_balsa*spar_width; % kg/m
     
     
     w_wing = 2*S*(carbon_epoxy_area_density+divinycell_area_density) + wingspan*spar_length_density; % multiply area density by 2 to account for the top and bottom wing skins

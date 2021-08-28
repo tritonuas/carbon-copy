@@ -16,9 +16,10 @@
 
 function w_vtail = weight_vtail_analytic(num_spar, spar_width, num_plies, density_carbon_epoxy, s_v, density_blue_foam, t_vtail_root, t_vtail_tip, vtail_span, fudgefactor)
     
-    carbon_epoxy_area_density = density_carbon_epoxy*num_plies;
+    t_carbon_epoxy = 0.0003;
+    carbon_epoxy_area_density = density_carbon_epoxy*num_plies*t_carbon_epoxy;
     
-    spar_length_density = (t_vtail_tip+t_vtail_root/2)*num_spar*density_blue_foam*spar_width; 
+    spar_length_density = ((t_vtail_tip+t_vtail_root)/2)*num_spar*density_blue_foam*spar_width; 
     
     w_vtail = 2*s_v*carbon_epoxy_area_density + vtail_span*spar_length_density; % multiply area density by 2 to account for the top and bottom tail skins
     

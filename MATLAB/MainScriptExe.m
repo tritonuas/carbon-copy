@@ -421,7 +421,7 @@ for j = 1:length(velocity)  %for every velocity...
 
 % Analytical Formula Method
 
- battery = 1;
+battery = 1;
 payload = 16;
 tail_area_h = .4;
 tail_area_v = .2;
@@ -440,7 +440,7 @@ num_spar_htail = 2;
 spar_width_htail = spar_width_wing;
 num_plies_htail = 2;
 s_h = tail_area_h;
-density_blue_foam = 200;
+density_blue_foam = 80;
 tail_aspectratio = 2;
 htail_span = sqrt(tail_area_h*tail_aspectratio);
 t_htail_root = (2*(tail_area_h/htail_span)*taperRatio)/(1+taperRatio);
@@ -457,8 +457,8 @@ num_bulkheads = 5;
 t_bulkhead = 0.00635;
 area_fraction_bulkhead = 0.2;
 density_plywood = 680;
-fuse_height = 0.025;
-fuse_width = 0.021;
+fuse_height = 0.25;
+fuse_width = 0.21;
 fuse_length = 1.1;
 wing_fudge_factor = 1;
 htail_fudge_factor = 1;
