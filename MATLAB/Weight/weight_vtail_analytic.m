@@ -22,6 +22,8 @@ function w_vtail = weight_vtail_analytic(num_spar, spar_width, num_plies, densit
     spar_length_density = ((t_vtail_tip+t_vtail_root)/2)*num_spar*density_blue_foam*spar_width; 
     
     w_vtail = 2*s_v*carbon_epoxy_area_density + vtail_span*spar_length_density; % multiply area density by 2 to account for the top and bottom tail skins
+    skin = 2*s_v*carbon_epoxy_area_density;
+    vtail = vtail_span*spar_length_density;
     
     w_vtail = 9.81*w_vtail; % convert from kg to N
     w_vtail = w_vtail*fudgefactor; 

@@ -24,8 +24,8 @@ function w_htail = weight_htail_analytic(num_spar, spar_width, num_plies, densit
     spar_length_density = ((t_htail_tip+t_htail_root)/2)*num_spar*density_blue_foam*spar_width; 
     
     w_htail = 2*s_h*carbon_epoxy_area_density + htail_span*spar_length_density; % multiply area density by 2 to account for the two sides of tail skins
-    skin = 2*s_h*carbon_epoxy_area_density
-    htail = htail_span*spar_length_density
+    skin = 2*s_h*carbon_epoxy_area_density;
+    htail = htail_span*spar_length_density;
     
     w_htail = 9.81*w_htail; % convert from kg to N
     w_htail = w_htail*fudgefactor; 

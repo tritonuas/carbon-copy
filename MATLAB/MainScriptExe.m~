@@ -421,66 +421,68 @@ for j = 1:length(velocity)  %for every velocity...
 
 % Analytical Formula Method
 
- battery = 1;
-payload = 16;
-tail_area_h = .4;
-tail_area_v = .2;
-num_spar_wing = 2;
-spar_width_wing = 0.0127;
-density_balsa = 200;
-t_divinycell = 0.003175;
-density_divinycell = 80;
-num_plies_wing = 2;
-density_carbon_epoxy = 1600;
-t_tip = 0.12*(2*chord*taperRatio)/(1+taperRatio);
-t_root = t_tip/taperRatio;
-wingspan = wingSpan;
-fudge_factor = 1;
-num_spar_htail = 2;
-spar_width_htail = spar_width_wing;
-num_plies_htail = 2;
-s_h = tail_area_h;
-density_blue_foam = 200;
-tail_aspectratio = 2;
-htail_span = sqrt(tail_area_h*tail_aspectratio);
-t_htail_root = (2*(tail_area_h/htail_span)*taperRatio)/(1+taperRatio);
-t_htail_tip = t_htail_root/taperRatio;
-num_spar_vtail = 2;
-spar_width_vtail = spar_width_wing;
-num_plies_vtail = 2;
-s_v = tail_area_v;
-vtail_span = sqrt(tail_area_v*tail_aspectratio);
-t_vtail_root = (2*(tail_area_v/vtail_span)*taperRatio)/(1+taperRatio);
-t_vtail_tip = t_vtail_root/taperRatio;
-num_plies_fuse = 2;
-num_bulkheads = 5;
-t_bulkhead = 0.00635;
-area_fraction_bulkhead = 0.2;
-density_plywood = 680;
-fuse_height = 0.025;
-fuse_width = 0.021;
-fuse_length = 1.1;
-wing_fudge_factor = 1;
-htail_fudge_factor = 1;
-vtail_fudge_factor = 1;
-fuse_fudge_factor = 1;
+        battery = ;
+        payload = 16;
+        tail_area_h = .1425;
+        tail_area_v = .08237;
+        s_h = tail_area_h;
+        s_v = tail_area_v;
+        num_plies_tailboom = 3;
+        num_plies_vtail = 2;
+        num_plies_htail = 2;
+        num_plies_wing = 2;
+        num_plies_fuse = 2;
+        num_spar_wing = 2;
+        num_spar_vtail = 1.5;
+        num_spar_htail = 1.5;
+        spar_width_wing = 0.0127;
+        spar_width_htail = spar_width_wing;
+        spar_width_vtail = spar_width_wing;
+        htail_aspectratio = 6;
+        vtail_aspectratio = 1;
+        htail_span = sqrt(tail_area_h*htail_aspectratio);
+        vtail_span = sqrt(tail_area_v*vtail_aspectratio);
+        t_divinycell = 0.003175;
+        t_tip = 0.12*(2*chord(i)*taperRatio)/(1+taperRatio);
+        t_root = t_tip/taperRatio;
+        t_htail_root = (2*(tail_area_h/htail_span)*taperRatio)/(1+taperRatio);
+        t_htail_tip = t_htail_root/taperRatio;
+        t_vtail_root = (2*(tail_area_v/vtail_span)*taperRatio)/(1+taperRatio);
+        t_vtail_tip = t_vtail_root/taperRatio;
+        t_bulkhead = 0.00635;
+        density_divinycell = 80;
+        density_carbon_epoxy = 1600;
+        density_balsa = 200;
+        density_plywood = 680;
+        density_blue_foam = 80;
+        wingspan = wingSpan;
+        num_bulkheads = 5;
+        area_fraction_bulkhead = 0.2;
+        fuse_height = 0.25;
+        fuse_width = 0.21;
+        fuse_length = 1.1;
+        tailboom_length = 1;
+        tailboom_fudge_factor = 1; 
+        fudge_factor = 1;
+        wing_fudge_factor  = 1;
+        htail_fudge_factor = 1;
+        vtail_fudge_factor = 1;
+        fuse_fudge_factor  = 1;
 
 
+        weight = compute_weight_analytic(battery, payload, S(i), num_spar_wing,  spar_width_wing, density_balsa, t_divinycell, density_divinycell,...
+            num_plies_wing, density_carbon_epoxy, t_tip, t_root, wingspan, fudge_factor,...
+            num_spar_htail, spar_width_htail, num_plies_htail, s_h, density_blue_foam, t_htail_root, t_htail_tip, htail_span,...
+            num_spar_vtail, spar_width_vtail, num_plies_vtail, s_v, t_vtail_root, t_vtail_tip, vtail_span,...
+            num_plies_fuse, num_bulkheads, t_bulkhead, area_fraction_bulkhead, density_plywood, fuse_height, fuse_width, fuse_length,...
+            num_plies_tailboom, tailboom_length, wing_fudge_factor, htail_fudge_factor, vtail_fudge_factor, fuse_fudge_factor, tailboom_fudge_factor);
 
+        % weight = compute_weight(S(i), battery, AR(i), taperRatio, sweepAngle, nIter,...
+        %                           tail_area_h, htail_ar, htail_taper, htail_sweep, htail_t_over_c,...
+        %                          tail_area_v, vtail_t_over_c, vtail_sweep, vtail_ar, vtail_taper, ...
+        %                          fus_wet, tail_len, fuse_len, fus_str_depth, q, wing_t_over_c,....
+        %                          empty_struct_fudge, misc_weight_fudge, payload);
 
-weight = compute_weight_analytic(battery, payload, S, num_spar_wing,  spar_width_wing, density_balsa, t_divinycell, density_divinycell,...
-    num_plies_wing, density_carbon_epoxy, t_tip, t_root, wingspan, fudge_factor,...
-    num_spar_htail, spar_width_htail, num_plies_htail, s_h, density_blue_foam, t_htail_root, t_htail_tip, htail_span,...
-    num_spar_vtail, spar_width_vtail, num_plies_vtail, s_v, t_vtail_root, t_vtail_tip, vtail_span,...
-    num_plies_fuse, num_bulkheads, t_bulkhead, area_fraction_bulkhead, density_plywood, fuse_height, fuse_width, fuse_length,...
-    wing_fudge_factor, htail_fudge_factor, vtail_fudge_factor, fuse_fudge_factor);
-
-% weight = compute_weight(S(i), battery, AR(i), taperRatio, sweepAngle, nIter,...
-%                           tail_area_h, htail_ar, htail_taper, htail_sweep, htail_t_over_c,...
-%                          tail_area_v, vtail_t_over_c, vtail_sweep, vtail_ar, vtail_taper, ...
-%                          fus_wet, tail_len, fuse_len, fus_str_depth, q, wing_t_over_c,....
-%                          empty_struct_fudge, misc_weight_fudge, payload);
-        
         %get the lift coefficient necessary for this S and velocity
         [lift, density, velocity(j), S(i), cl(i)] = liftEq(hasLift,lift,...
            hasDensity,density, hasVel,velocity(j), hasS,S(i), hasCl,cl(i));

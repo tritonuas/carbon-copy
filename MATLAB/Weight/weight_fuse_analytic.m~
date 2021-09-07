@@ -10,7 +10,7 @@
 %%num_plies = number of layers of carbon epoxy composite
 %%num_bulkheads = number of bulkheads
 %%area_fraction_bulkhead = area fraction of bulkhead
-%%density_carbon_epoxy = density of the carbon epoxy composite
+%%density_carbon_epoxy = density of the carbon epoxy composiute
 %%density_plywood = density of plywood
 %%fudgefactor = fudgefactor
 
@@ -22,8 +22,8 @@ function w_fuse = weight_fuse_analytic(density_carbon_epoxy, num_plies, num_bulk
     carbon_epoxy_area_density = density_carbon_epoxy*num_plies*t_carbon_epoxy;
     
     w_fuse = carbon_epoxy_area_density*(2*fuse_length*fuse_width+2*fuse_length*fuse_height+2*fuse_height*fuse_width) + fuse_height*fuse_width*bulkhead_area_density;
-    skin = carbon_epoxy_area_density*(2*fuse_length*fuse_width+2*fuse_length*fuse_height+2*fuse_height*fuse_width);
-    bulkhead = fuse_height*fuse_width*bulkhead_area_density;
+    skin = carbon_epoxy_area_density*(2*fuse_length*fuse_width+2*fuse_length*fuse_height+2*fuse_height*fuse_width)
+    bulkhead = 
     
     w_fuse = w_fuse*9.81; % conversion from kg to newtons
     w_fuse = fudgefactor*w_fuse;
