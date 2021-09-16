@@ -41,6 +41,7 @@ addpath("Weight");
 addpath("Structures");
 addpath("tail");
 addpath("Airfoil");
+addpath("Structures");
 %% Constants
 g = 9.81;                   %sea level Earth gravity
 density = 1.225;            %sea level air density
@@ -339,6 +340,52 @@ disp("Stall speed: " + stall_speed);
 end
 % 
 
+E1 = 2e7;
+E2 = 1.5e6;
+G12 = 1e6;
+Nu12 = 0.29;
+thickness_per_ply = 0.005;
+cte1 = -5e-7;
+cte2 = 1.5e-5;
+sigma_1T = 3.1e5;
+sigma_1C = -2e5;
+sigma_2T = 9e3;
+sigma_2C = -3e4;
+sigma_12 = 1.5e4;
+
+mat_props = [E1;E2;G12;Nu12];
+cte_vec = [cte1; cte2; 0];
+mat_strengths_t = [sigma_1T;sigma_2T;sigma_12];
+mat_strengths_c = [sigma_1C;sigma_2C;sigma_12];
+
+fail_crit = "max_stress";
+print_output = false;
+SF = 2;
+
+Nx = 100; 
+Ny = 0;
+Nxy = 0;
+Mx = 0;
+My = 0.5;
+Mxy = 0;
+delta_T = 0;
+
+mech_loading = [Nx;Ny;Nxy;Mx;My;Mxy];
+
+
+[stresses_bot, stresses_top, z_all, ...
+mid_strains_and_curvatures, thermal_loading, ABD] = ...
+get_local_lamina_stresses_planar_ortho(mat_props, thetas, ...
+rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec);
+
+[MS, failed_plies, failed_side, failed_z, fail_mode, fail_tcs] ...
+= report_ply_margins(stresses_bot, stresses_top, z_all, ...
+fail_crit, mat_strengths_t, mat_strengths_c, SF, print_output);
+
+
+
+
+
 %% Stepwise,Nested Iterative solution
 function [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
     = step_iter_sol(ARMaster, S, SMaster, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, saNose, tail_area_h, cHS, tail_area_v, cVS, saTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan, C_HT, C_VT) 
@@ -421,8 +468,8 @@ for j = 1:length(velocity)  %for every velocity...
 
 % Analytical Formula Method
 
-        battery = ;
-        payload = 16;
+        battery = 24.6876;
+        payload = 71.5719;
         tail_area_h = .1425;
         tail_area_v = .08237;
         s_h = tail_area_h;
