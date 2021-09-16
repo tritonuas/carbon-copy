@@ -372,8 +372,8 @@ delta_T = 0;
 
 mech_loading = [Nx;Ny;Nxy;Mx;My;Mxy];
 
-Rm = -lift*(wingspan/2); % reaction moment at root
-
+Rm = -lift*(wingspan/2);
+Mr = Rm; 
 
 [stresses_bot, stresses_top, z_all, ...
 mid_strains_and_curvatures, thermal_loading, ABD] = ...
