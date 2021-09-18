@@ -172,7 +172,7 @@ C_VT = 0.04;     %Vertical tail volume coefficient
 % inputs:  = subfunction_name(AR, ARMaster, G, S, SFTime, SMaster, additionalWaypointDist, avgChordReq, cTail, climbAngleReq, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, n, nStall, numSteps, radius, rootChordReq, saFuse, sMax, sMin, sMinStruct, saNose, sTail, saTailBoom, stallSpeed, sweepAngle, taperRatio, timeLimit, tipChordReq, totalTravelDist, velocity, velocityMax, velocityMin, velocityReq, viscosity, weight, wingSpan) 
 
 %Pick Method
-methods = ["Step_Iterative"];
+methods = ["DBI"];
 sol = 0; %has a solution been found?)
 
 if find(methods == "DBI")
@@ -337,8 +337,7 @@ if load_factor > maxLoadFactorTurns + 0.001
 end
 disp("Stall speed: " + stall_speed);
 % 
-end
-% 
+
 
 E1 = 2e7;
 E2 = 1.5e6;
@@ -359,33 +358,43 @@ mat_strengths_t = [sigma_1T;sigma_2T;sigma_12];
 mat_strengths_c = [sigma_1C;sigma_2C;sigma_12];
 
 fail_crit = "max_stress";
-print_output = false;
+print_output = true;
 SF = 2;
 
 Nx = 100; 
 Ny = 0;
 Nxy = 0;
 Mx = 0;
-My = 0.5;
+My = 0;
 Mxy = 0;
 delta_T = 0;
+t_airfoil = .1;
+thetas = symm([0 0 0 0 0 45 0 60 4 3 0 0 90]);
+rad_or_deg = "deg";
+thickness_per_ply = 0.0003;
+thicknesses = ones(length(thetas),1)*thickness_per_ply;
+
+
+
+
+Rm = -lift*(wingSpan/2); % reaction moment at root
+% t_airfoil = airfoil thickness
+Fx = -Rm/t_airfoil; %Force
+l = 0.8*chord - 0.2*chord; % length of wing box
+Nx = Fx/l; % in-plane stress
 
 mech_loading = [Nx;Ny;Nxy;Mx;My;Mxy];
-
-Rm = -lift*(wingspan/2); % reaction moment at root
-
 
 [stresses_bot, stresses_top, z_all, ...
 mid_strains_and_curvatures, thermal_loading, ABD] = ...
 get_local_lamina_stresses_planar_ortho(mat_props, thetas, ...
-rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec);
+rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec)
 
 [MS, failed_plies, failed_side, failed_z, fail_mode, fail_tcs] ...
 = report_ply_margins(stresses_bot, stresses_top, z_all, ...
 fail_crit, mat_strengths_t, mat_strengths_c, SF, print_output);
 
-
-
+end
 
 
 %% Stepwise,Nested Iterative solution
