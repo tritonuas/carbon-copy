@@ -172,7 +172,7 @@ C_VT = 0.04;     %Vertical tail volume coefficient
 % inputs:  = subfunction_name(AR, ARMaster, G, S, SFTime, SMaster, additionalWaypointDist, avgChordReq, cTail, climbAngleReq, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, n, nStall, numSteps, radius, rootChordReq, saFuse, sMax, sMin, sMinStruct, saNose, sTail, saTailBoom, stallSpeed, sweepAngle, taperRatio, timeLimit, tipChordReq, totalTravelDist, velocity, velocityMax, velocityMin, velocityReq, viscosity, weight, wingSpan) 
 
 %Pick Method
-methods = ["Step_Iterative"];
+methods = ["DBI"];
 sol = 0; %has a solution been found?)
 
 if find(methods == "DBI")
@@ -337,17 +337,16 @@ if load_factor > maxLoadFactorTurns + 0.001
 end
 disp("Stall speed: " + stall_speed);
 % 
-end
-% 
 
-E1 = 2e7;
-E2 = 1.5e6;
-G12 = 1e6;
-Nu12 = 0.29;
+
+E1 = 135e9; % Pa
+E2 = 10e9; % Pa
+G12 = 5e9; % Pa
+Nu12 = 0.30;
 thickness_per_ply = 0.005;
 cte1 = -5e-7;
 cte2 = 1.5e-5;
-sigma_1T = 3.1e5;
+sigma_1T = e5;
 sigma_1C = -2e5;
 sigma_2T = 9e3;
 sigma_2C = -3e4;
@@ -359,19 +358,32 @@ mat_strengths_t = [sigma_1T;sigma_2T;sigma_12];
 mat_strengths_c = [sigma_1C;sigma_2C;sigma_12];
 
 fail_crit = "max_stress";
-print_output = false;
+print_output = true;
 SF = 2;
 
 Nx = 100; 
 Ny = 0;
 Nxy = 0;
 Mx = 0;
-My = 0.5;
+My = 0;
 Mxy = 0;
 delta_T = 0;
+t_airfoil = .1;
+thetas = symm([0 0 0 0 0 45 0 60 4 3 0 0 90]);
+rad_or_deg = "deg";
+thickness_per_ply = 0.0003;
+thicknesses = ones(length(thetas),1)*thickness_per_ply;
+
+
+
+
+Rm = -lift*(wingSpan/4); % reaction moment at root
+% t_airfoil = airfoil thickness
+Fx = -Rm/t_airfoil; %Force
+l = 0.8*chord - 0.2*chord; % length of wing box
+Nx = Fx/l; % in-plane stress
 
 mech_loading = [Nx;Ny;Nxy;Mx;My;Mxy];
-
 
 [stresses_bot, stresses_top, z_all, ...
 mid_strains_and_curvatures, thermal_loading, ABD] = ...
@@ -382,8 +394,9 @@ rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec);
 = report_ply_margins(stresses_bot, stresses_top, z_all, ...
 fail_crit, mat_strengths_t, mat_strengths_c, SF, print_output);
 
+MS
 
-
+end
 
 
 %% Stepwise,Nested Iterative solution

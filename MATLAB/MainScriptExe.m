@@ -339,18 +339,18 @@ disp("Stall speed: " + stall_speed);
 % 
 
 
-E1 = 2e7;
-E2 = 1.5e6;
-G12 = 1e6;
-Nu12 = 0.29;
+E1 = 135e9; % Pa
+E2 = 10e9; % Pa
+G12 = 5e9; % Pa
+Nu12 = 0.30;
 thickness_per_ply = 0.005;
 cte1 = -5e-7;
 cte2 = 1.5e-5;
-sigma_1T = 3.1e5;
-sigma_1C = -2e5;
-sigma_2T = 9e3;
-sigma_2C = -3e4;
-sigma_12 = 1.5e4;
+sigma_1T = 1500e6;
+sigma_1C = 1200e6;
+sigma_2T = 50e6;
+sigma_2C = 250e6;
+sigma_12 = 70e6;
 
 mat_props = [E1;E2;G12;Nu12];
 cte_vec = [cte1; cte2; 0];
@@ -369,7 +369,7 @@ My = 0;
 Mxy = 0;
 delta_T = 0;
 t_airfoil = .1;
-thetas = symm([0 0 0 0 0 45 0 60 4 3 0 0 90]);
+thetas = symm([0 90]);
 rad_or_deg = "deg";
 thickness_per_ply = 0.0003;
 thicknesses = ones(length(thetas),1)*thickness_per_ply;
@@ -377,7 +377,7 @@ thicknesses = ones(length(thetas),1)*thickness_per_ply;
 
 
 
-Rm = -lift*(wingSpan/2); % reaction moment at root
+Rm = -lift*(wingSpan/4); % reaction moment at root
 % t_airfoil = airfoil thickness
 Fx = -Rm/t_airfoil; %Force
 l = 0.8*chord - 0.2*chord; % length of wing box
@@ -388,11 +388,11 @@ mech_loading = [Nx;Ny;Nxy;Mx;My;Mxy];
 [stresses_bot, stresses_top, z_all, ...
 mid_strains_and_curvatures, thermal_loading, ABD] = ...
 get_local_lamina_stresses_planar_ortho(mat_props, thetas, ...
-rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec)
+rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec);
 
 [MS, failed_plies, failed_side, failed_z, fail_mode, fail_tcs] ...
 = report_ply_margins(stresses_bot, stresses_top, z_all, ...
-fail_crit, mat_strengths_t, mat_strengths_c, SF, print_output);
+fail_crit, mat_strengths_t, mat_strengths_c, SF, print_output)
 
 end
 
