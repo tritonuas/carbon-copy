@@ -369,7 +369,7 @@ My = 0;
 Mxy = 0;
 delta_T = 0;
 t_airfoil = .1;
-thetas = symm([0 90]);
+thetas = 90;
 rad_or_deg = "deg";
 thickness_per_ply = 0.0003;
 thicknesses = ones(length(thetas),1)*thickness_per_ply;
@@ -382,6 +382,11 @@ Rm = -lift*(wingSpan/4); % reaction moment at root
 Fx = -Rm/t_airfoil; %Force
 l = 0.8*chord - 0.2*chord; % length of wing box
 Nx = Fx/l; % in-plane stress
+
+drag = 1/2*density*v(iterNum)^2*cd(iterNum)*S(iterNum);
+Rm_y = drag*(wingSpan/4); % reaction moment at root in the y direction
+wing_box_distance  = 0.8*chord - 0.2*chord; % distance between two spars 
+Nxy = Rm_y/(wing_box_distance*(wingSpan/2));
 
 mech_loading = [Nx;Ny;Nxy;Mx;My;Mxy];
 
