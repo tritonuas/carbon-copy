@@ -1,13 +1,15 @@
 %%Takes in inputs of material and laminate properties and calculates the
-%%local stresses at the top and bottom of each ply (planar).
+%%thermal loading.
 %%Author: Andrew Fletcher
 %%Email: afletche@ucsd.edu
 %
-%%@param material_props a vector defined as [E11 E22 G12 Nu12]
-%%@param thetas a vector of the angles of each lamina (in order)
-%%@param rad_or_deg a string of 'rad' or 'deg' specifying units for theta
+%%@param thetas the angle of each ply in the laminate from bottom to top
+%%@param rad_or_deg the string 'rad' or 'deg' specifying units of thetas
+%%@param mat_props a vector of material properties defined as [E11 E22 G12 Nu12]
 %%@param thicknesses a vector of the thickness of each ply
-%%@return loading the column vector of loading [Nx;Ny;Nxy;Mx;My;Mxy]
+%%@param delta_T the change in temperature that causes the thermal loading
+%%@param cte_mat_local the matrix of coefficients of thermal expansion
+%%@return thermal_loading the applied load from temperature changes
 function thermal_loading = get_thermal_load(thetas, rad_or_deg,...
     mat_props, thicknesses, delta_T, cte_mat_local)
 
