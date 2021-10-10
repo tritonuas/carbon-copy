@@ -73,7 +73,7 @@ ARMaster = AR;
 
 %Fuselage Requirements
 saFuse = 1;      %1 for carbon copy
-lenFuse = 1.2;  %1.2 for carbon copy
+lenFuse = 1.2;   %1.2 for carbon copy
 
 %Tail Boom Requirement
 tail_boom_radius = 0.0762/2;    %3 inch diameter converted to radius in m
@@ -194,7 +194,7 @@ end
 
 %% Derivative based iteration
 function [clOverCd, v, cl, S, wing_loading, chord, AR, load_factor, stall_speed] ...
-    = dbi_sol(density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, sMinStruct, sMax, saNose, tail_area_h, cHS, tail_area_v, cVS, saTailBoom, tail_boom_radius, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT) 
+    = dbi_sol(density, g, lenFuse, lenNose, tailboom_length, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, sMinStruct, sMax, saNose, tail_area_h, cHS, tail_area_v, cVS, saTailBoom, tail_boom_radius, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT) 
 %TODO still need to finish validating and cleaning up stuff that is not
 %needed, and finish making the output print statements
 %TODO think about this from a controller standpoint, and how to add Kd and
@@ -231,10 +231,7 @@ while abs(derivative_cl_over_cd) > 0.001
     chord = S(iterNum)/wingSpan;   %from max cl checker
     AR = wingSpan^2/S(iterNum); 
 
-    %calculate weight
-%     weight = getWeight(S(iterNum));       
-%     lift = weight;
-
+    weight = 135; % initialize weight       
     v_guess = 20;
     v(iterNum) = 10;
     while abs(v_guess - v(iterNum)) > 0.1
@@ -247,19 +244,137 @@ while abs(derivative_cl_over_cd) > 0.001
         %get the zero-lift drag coeff for this S and velocity
         cd0(iterNum) = getZeroLiftDrag(density, viscosity, v(iterNum), ...
                    S(iterNum), saWing, chord, saFuse,lenFuse, saNose,lenNose,...
-                   saHS,cHS, saVS,cVS, saTailBoom,lenTailBoom);
+                   saHS,cHS, saVS,cVS, saTailBoom,tailboom_length);
 
-        %calculate velocity and lift coefficient
+        % calculate velocity and lift coefficient
         v(iterNum) = -1;
         [S(iterNum), v(iterNum), cl(iterNum)] = minDragEq(v(iterNum),...
-          density, S(iterNum), cd0(iterNum), wingSpan, lift, taperRatio, sweepAngle);
+          density, S(iterNum), cd0(iterNum), wingSpan, weight, taperRatio, sweepAngle);
         saWing = S(iterNum)*2;
       
         % calculate tail areas and tail boom length (and therefore area)
-        [tail_area_h, tail_area_v, lenTailBoom] = find_tail_size(wingSpan, ...
+        [tail_area_h, tail_area_v, tailboom_length] = find_tail_size(wingSpan, ...
         S(end), saWing, chord(end), C_HT, C_VT, density, viscosity, v(end));
         sTail = tail_area_h + tail_area_v;
-        saTailBoom = lenTailBoom*2*pi*tail_boom_radius;
+        saTailBoom = tailboom_length*2*pi*tail_boom_radius;
+        
+        
+        % calculate direction and number of plies 
+        E1 = 135e9; % Pa
+        E2 = 10e9; % Pa
+        G12 = 5e9; % Pa
+        Nu12 = 0.30;
+        thickness_per_ply = 0.005;
+        cte1 = -5e-7;
+        cte2 = 1.5e-5;
+        sigma_1T = 1500e6;
+        sigma_1C = 1200e6;
+        sigma_2T = 50e6;
+        sigma_2C = 250e6;
+        sigma_12 = 70e6;
+
+        mat_props = [E1;E2;G12;Nu12];
+        cte_vec = [cte1; cte2; 0];
+        mat_strengths_t = [sigma_1T;sigma_2T;sigma_12];
+        mat_strengths_c = [sigma_1C;sigma_2C;sigma_12];
+
+        fail_crit = "max_stress";
+        print_output = true;
+        SF = 2;
+
+        Nx = 100;
+        Ny = 0;
+        Nxy = 0;
+        Mx = 0;
+        My = 0;
+        Mxy = 0;
+        delta_T = 0;
+        t_airfoil = .1;
+        thetas = 90;
+        rad_or_deg = "deg";
+        thickness_per_ply = 0.0003;
+        thicknesses = ones(length(thetas),1)*thickness_per_ply;
+
+        Rm = -lift*(wingSpan/4); % reaction moment at root
+        % t_airfoil = airfoil thickness
+        Fx = -Rm/t_airfoil; %Force
+        l = 0.8*chord - 0.2*chord; % length of wing box
+        Nx = Fx/l; % in-plane stress
+        %get induced drag so we can later get cd
+        k = getK(AR, taperRatio, sweepAngle);
+        cdi(iterNum) = cl(iterNum)^2*k;
+        %get cd so we can later get cl/cd
+        cd(iterNum) = cd0(iterNum) + cdi(iterNum);
+        drag = 1/2*density*v(iterNum)^2*cd(iterNum)*S(iterNum);
+        Rm_y = drag*(wingSpan/4); % reaction moment at root in the y direction
+        wing_box_distance  = 0.8*chord - 0.2*chord; % distance between two spars 
+        Nxy = Rm_y/(wing_box_distance*(wingSpan/2));
+
+        mech_loading = [Nx;Ny;Nxy;Mx;My;Mxy];
+
+        [stresses_bot, stresses_top, z_all, ...
+        mid_strains_and_curvatures, thermal_loading, ABD] = ...
+        get_local_lamina_stresses_planar_ortho(mat_props, thetas, ...
+        rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec);
+
+        [MS, failed_plies, failed_side, failed_z, fail_mode, fail_tcs] ...
+        = report_ply_margins(stresses_bot, stresses_top, z_all, ...
+        fail_crit, mat_strengths_t, mat_strengths_c, SF, print_output)
+        
+        % calculate weight 
+        battery = 24.6876;
+        payload = 71.5719;
+        s_h = tail_area_h;
+        s_v = tail_area_v;
+        num_plies_tailboom = 3;
+        num_plies_vtail = 2;
+        num_plies_htail = 2;
+        num_plies_wing = 2;
+        num_plies_fuse = 2;
+        num_spar_wing = 2;
+        num_spar_vtail = 1.5;
+        num_spar_htail = 1.5;
+        spar_width_wing = 0.0127;
+        spar_width_htail = spar_width_wing;
+        spar_width_vtail = spar_width_wing;
+        htail_aspectratio = 6;
+        vtail_aspectratio = 1;
+        htail_span = sqrt(tail_area_h*htail_aspectratio);
+        vtail_span = sqrt(tail_area_v*vtail_aspectratio);
+        t_divinycell = 0.003175;
+        t_tip = 0.12*(2*chord(end)*taperRatio)/(1+taperRatio);
+        t_root = t_tip/taperRatio;
+        t_htail_root = (2*(tail_area_h/htail_span)*taperRatio)/(1+taperRatio);
+        t_htail_tip = t_htail_root/taperRatio;
+        t_vtail_root = (2*(tail_area_v/vtail_span)*taperRatio)/(1+taperRatio);
+        t_vtail_tip = t_vtail_root/taperRatio;
+        t_bulkhead = 0.00635;
+        density_divinycell = 80;
+        density_carbon_epoxy = 1600;
+        density_balsa = 200;
+        density_plywood = 680;
+        density_blue_foam = 80;
+        wingspan = wingSpan;
+        num_bulkheads = 5;
+        area_fraction_bulkhead = 0.2;
+        fuse_height = 0.25;
+        fuse_width = 0.21;
+        fuse_length = 1.1;
+        tailboom_fudge_factor = 1; 
+        fudge_factor = 1;
+        wing_fudge_factor  = 1;
+        htail_fudge_factor = 1;
+        vtail_fudge_factor = 1;
+        fuse_fudge_factor  = 1;
+
+
+        weight = compute_weight_analytic(battery, payload, S(end), num_spar_wing,  spar_width_wing, density_balsa, t_divinycell, density_divinycell,...
+            num_plies_wing, density_carbon_epoxy, t_tip, t_root, wingspan, fudge_factor,...
+            num_spar_htail, spar_width_htail, num_plies_htail, s_h, density_blue_foam, t_htail_root, t_htail_tip, htail_span,...
+            num_spar_vtail, spar_width_vtail, num_plies_vtail, s_v, t_vtail_root, t_vtail_tip, vtail_span,...
+            num_plies_fuse, num_bulkheads, t_bulkhead, area_fraction_bulkhead, density_plywood, fuse_height, fuse_width, fuse_length,...
+            num_plies_tailboom, tailboom_length, wing_fudge_factor, htail_fudge_factor, vtail_fudge_factor, fuse_fudge_factor, tailboom_fudge_factor);
+
     end
   
     q = 1/2*density*v(iterNum)^2;
@@ -331,73 +446,12 @@ disp("Aspect ratio: " + AR);
 disp("Load factor on turns: " + load_factor);
 disp("Horizontal Tail Area: " + tail_area_h); 
 disp("Vertical Tail Area: " + tail_area_v); 
-disp("Tail Boom Length: " + lenTailBoom); 
+disp("Tail Boom Length: " + tailboom_length); 
 if load_factor > maxLoadFactorTurns + 0.001
     disp("Invalid solution! Load factor constraint not satisfied.");
 end
 disp("Stall speed: " + stall_speed);
 % 
-
-
-E1 = 135e9; % Pa
-E2 = 10e9; % Pa
-G12 = 5e9; % Pa
-Nu12 = 0.30;
-thickness_per_ply = 0.005;
-cte1 = -5e-7;
-cte2 = 1.5e-5;
-sigma_1T = 1500e6;
-sigma_1C = 1200e6;
-sigma_2T = 50e6;
-sigma_2C = 250e6;
-sigma_12 = 70e6;
-
-mat_props = [E1;E2;G12;Nu12];
-cte_vec = [cte1; cte2; 0];
-mat_strengths_t = [sigma_1T;sigma_2T;sigma_12];
-mat_strengths_c = [sigma_1C;sigma_2C;sigma_12];
-
-fail_crit = "max_stress";
-print_output = true;
-SF = 2;
-
-Nx = 100; 
-Ny = 0;
-Nxy = 0;
-Mx = 0;
-My = 0;
-Mxy = 0;
-delta_T = 0;
-t_airfoil = .1;
-thetas = 90;
-rad_or_deg = "deg";
-thickness_per_ply = 0.0003;
-thicknesses = ones(length(thetas),1)*thickness_per_ply;
-
-
-
-
-Rm = -lift*(wingSpan/4); % reaction moment at root
-% t_airfoil = airfoil thickness
-Fx = -Rm/t_airfoil; %Force
-l = 0.8*chord - 0.2*chord; % length of wing box
-Nx = Fx/l; % in-plane stress
-
-drag = 1/2*density*v(iterNum)^2*cd(iterNum)*S(iterNum);
-Rm_y = drag*(wingSpan/4); % reaction moment at root in the y direction
-wing_box_distance  = 0.8*chord - 0.2*chord; % distance between two spars 
-Nxy = Rm_y/(wing_box_distance*(wingSpan/2));
-
-mech_loading = [Nx;Ny;Nxy;Mx;My;Mxy];
-
-[stresses_bot, stresses_top, z_all, ...
-mid_strains_and_curvatures, thermal_loading, ABD] = ...
-get_local_lamina_stresses_planar_ortho(mat_props, thetas, ...
-rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec);
-
-[MS, failed_plies, failed_side, failed_z, fail_mode, fail_tcs] ...
-= report_ply_margins(stresses_bot, stresses_top, z_all, ...
-fail_crit, mat_strengths_t, mat_strengths_c, SF, print_output)
 
 end
 
