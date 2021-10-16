@@ -1,3 +1,5 @@
+%%Hi! My name is Andrew, and this is so you can see a push.
+
 %%This is the main script (executable) for the plane design program
 %%As of now, this takes in inputs of wingspan, weight, and initial guesses
 %%for the sizing of the parts, and outputs the ideal lift coefficient 
