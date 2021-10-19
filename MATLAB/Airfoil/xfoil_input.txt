@@ -1,0 +1,14 @@
+naca 8709
+gdes
+tset
+0.087037
+0.082058
+high
+0.18049
+0.66312
+name
+modairfoil
+x
+
+save
+modairfoil.dat

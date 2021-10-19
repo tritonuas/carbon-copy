@@ -13,7 +13,7 @@ function [best_airfoil_specs, ClCd] = Airfopt3(Cl, GuessAirfoil)
     dX = 0.01; %in derivative calculations, (x2-x1)
     minA = 0; 
     maxA = 0.1;
-    minB = 0.2;          
+    minB = 0.1;          
     maxB = 0.6;
     minC = 0.1;
     maxC = 0.3;
@@ -23,7 +23,7 @@ function [best_airfoil_specs, ClCd] = Airfopt3(Cl, GuessAirfoil)
     maxCm = 0;
     
     %Constraint Functions
-        bowl = @(x,y,z) 1/(x-y) - 1/(x-z);%y = min, z = max
+        bowl = @(x,y,z) 1/(0.5*(x-y)) - 1/(0.5*(x-z));%y = min, z = max
     
     A = str2double(GuessAirfoil(1))/100;% max camber: chord ratio
         if A > maxA
@@ -54,7 +54,8 @@ function [best_airfoil_specs, ClCd] = Airfopt3(Cl, GuessAirfoil)
     maxiter = 100; %shouldn't be necessary if optimization works properly
     converged = false; %to enter while loop
     con = 0.001;% converged if max(step) below this value
-    modairfoil_filename = 'C:\\TUAS\\carbon-copy\\MATLAB\\Airfoil\\modairfoil.dat';
+    modairfoil_filename = 'modairfoil.dat';
+%   modairfoil_filename = 'C:\\TUAS\\carbon-copy\\MATLAB\\Airfoil\\modairfoil.dat';
 %     bestairfoil_filename = 'C:\\TUAS\\carbon-copy\\MATLAB\\Airfoil\\bestairfoil.dat';
     StallWeight = 1;
     
@@ -135,7 +136,7 @@ function [best_airfoil_specs, ClCd] = Airfopt3(Cl, GuessAirfoil)
             tic
 % %             [StallScore(i,1),~,~] = GetStallScore(alpha,modairfoil_filename); % Find stall score 
 %             [StallScore(i),~,~] = BFGetStallScore(modairfoil_filename);
-            StallScore(i) = 0;
+            StallScore(i,1) = 0;
             stalltime(i,iter) = toc;
             
             % Objective Function

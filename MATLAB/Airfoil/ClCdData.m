@@ -14,7 +14,10 @@ function ClCdData(Cl,modairfoil_filename,Citer)
         fprintf(fid,['cl ', num2str(Cl),'\n']);% run xfoil with given Cl value
         fprintf(fid,'pacc\n');
 
-        cmd = 'xfoil.exe < xfoil_input.txt';   % running on xfoil
+        % WHEN RUNNING ON WINDOWS
+        % cmd = 'xfoil.exe < xfoil_input.txt';   % running on xfoil
+        % WHEN RUNNING ON LINUX
+        cmd = 'xfoil < xfoil_input.txt';   % running on xfoil
         [~,~] = system(cmd);
 
         fclose('all');
