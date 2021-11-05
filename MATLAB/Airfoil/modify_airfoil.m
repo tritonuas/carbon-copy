@@ -32,9 +32,9 @@ function modify_airfoil(Airfoil_Specs, modairfoil_filename)
         fprintf(fid,['save\n', modairfoil_filename, '\n']);
 
         % WHEN RUNNING ON WINDOWS
-        % cmd = 'xfoil.exe < xfoil_input.txt';   % running on xfoil
+        cmd = 'xfoil.exe < xfoil_input.txt';   % running on xfoil
         % WHEN RUNNING ON LINUX
-        cmd = 'xfoil < xfoil_input.txt';   % running on xfoil
+        %cmd = 'xfoil < xfoil_input.txt';   % running on xfoil
         [~,~] = system(cmd);
         
         fclose('all');

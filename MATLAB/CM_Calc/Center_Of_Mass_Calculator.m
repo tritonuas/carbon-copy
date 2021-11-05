@@ -27,6 +27,10 @@
              Total_zTrans = Total_zTrans + zTrans;
                 CMz = Total_zTrans / Total_Mass;
         end
+        
+   % for loop to calc distance between each center of mass and point
+   % mass then sqare it and multiply by the mass, then sum each of
+   % these values up
 
     % T = table(Total_Mass, CMx, CMy, CMz);
     % writetable(T,inFile,'Sheet', 2,'Range','A1');

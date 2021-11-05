@@ -15,9 +15,9 @@ function ClCdData(Cl,modairfoil_filename,Citer)
         fprintf(fid,'pacc\n');
 
         % WHEN RUNNING ON WINDOWS
-        % cmd = 'xfoil.exe < xfoil_input.txt';   % running on xfoil
+        cmd = 'xfoil.exe < xfoil_input.txt';   % running on xfoil
         % WHEN RUNNING ON LINUX
-        cmd = 'xfoil < xfoil_input.txt';   % running on xfoil
+        %cmd = 'xfoil < xfoil_input.txt';   % running on xfoil
         [~,~] = system(cmd);
 
         fclose('all');
