@@ -44,6 +44,7 @@ addpath("Structures");
 addpath("tail");
 addpath("Airfoil");
 addpath("Structures");
+addpath("CM_Calc");
 %% Constants
 g = 9.81;                   %sea level Earth gravity
 density = 1.225;            %sea level air density
@@ -370,7 +371,7 @@ while abs(derivative_cl_over_cd) > 0.001
         fuse_fudge_factor  = 1;
 
 
-        weight = compute_weight_analytic(battery, payload, S(end), num_spar_wing,  spar_width_wing, density_balsa, t_divinycell, density_divinycell,...
+        [weight,w_wing,w_htail,w_vtail,w_fuse,w_tailboom] = compute_weight_analytic(battery, payload, S(end), num_spar_wing,  spar_width_wing, density_balsa, t_divinycell, density_divinycell,...
             num_plies_wing, density_carbon_epoxy, t_tip, t_root, wingspan, fudge_factor,...
             num_spar_htail, spar_width_htail, num_plies_htail, s_h, density_blue_foam, t_htail_root, t_htail_tip, htail_span,...
             num_spar_vtail, spar_width_vtail, num_plies_vtail, s_v, t_vtail_root, t_vtail_tip, vtail_span,...
@@ -379,6 +380,10 @@ while abs(derivative_cl_over_cd) > 0.001
 
     end
   
+    weight_vec = [battery,w_wing,w_fuse]
+    position_vec = [0.05,0,0;0.1,0,0.05;0.5,0,0]
+    [cg] = calc_cg(weight_vec, position_vec)
+    
     q = 1/2*density*v(iterNum)^2;
     
     %Placing a maximum lift coefficient due to airfoil constraints
