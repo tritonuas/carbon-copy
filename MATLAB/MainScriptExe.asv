@@ -387,12 +387,7 @@ while abs(derivative_cl_over_cd) > 0.001
     end
   
     weight_vec = [battery,w_wing,w_fuse,w_vtail,w_htail,w_tailboom]
-    position_vec = [0.05,0,0;
-        (chord/2)+(.2*fuse_length),0,0.05;
-        fuse_length/2,0,0;
-        (tail_chord_v/2)+tailboom_length+fuse_length,0,tail_span_v/2;
-        (tail_chord_h/2)+tailboom_length+fuse_length,0,0;
-        (fuse_length+tailboom_length/2),0,0]
+    position_vec = [0.05,0,0;(chord/2)+(.2*fuse_length),0,0.05;fuse_length/2,0,0;(tail_chord_v/2,0,tail_span_v;1,0,0;(fuse_length+tailboom_length),0,0]
     [cg] = calc_cg(weight_vec, position_vec)
     
     q = 1/2*density*v(iterNum)^2;
