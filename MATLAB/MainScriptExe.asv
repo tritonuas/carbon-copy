@@ -260,7 +260,7 @@ while abs(derivative_cl_over_cd) > 0.001
         S(end), saWing, chord(end), C_HT, C_VT, density, viscosity, v(end));
         sTail = tail_area_h + tail_area_v;
         saTailBoom = tailboom_length*2*pi*tail_boom_radius;
-        AR_h=2;
+        AR_h=4;
         AR_v=1;
         tail_span_h=sqrt(tail_area_h*AR_h);
         tail_span_v=sqrt(tail_area_v*AR_v);
@@ -346,10 +346,6 @@ while abs(derivative_cl_over_cd) > 0.001
         spar_width_wing = 0.0127;
         spar_width_htail = spar_width_wing;
         spar_width_vtail = spar_width_wing;
-        htail_aspectratio = 6;
-        vtail_aspectratio = 1;
-        htail_span = sqrt(tail_area_h*htail_aspectratio);
-        vtail_span = sqrt(tail_area_v*vtail_aspectratio);
         t_divinycell = 0.003175;
         t_tip = 0.12*(2*chord(end)*taperRatio)/(1+taperRatio);
         t_root = t_tip/taperRatio;
@@ -379,16 +375,31 @@ while abs(derivative_cl_over_cd) > 0.001
 
         [weight,w_wing,w_htail,w_vtail,w_fuse,w_tailboom] = compute_weight_analytic(battery, payload, S(end), num_spar_wing,  spar_width_wing, density_balsa, t_divinycell, density_divinycell,...
             num_plies_wing, density_carbon_epoxy, t_tip, t_root, wingspan, fudge_factor,...
-            num_spar_htail, spar_width_htail, num_plies_htail, s_h, density_blue_foam, t_htail_root, t_htail_tip, htail_span,...
-            num_spar_vtail, spar_width_vtail, num_plies_vtail, s_v, t_vtail_root, t_vtail_tip, vtail_span,...
+            num_spar_htail, spar_width_htail, num_plies_htail, s_h, density_blue_foam, t_htail_root, t_htail_tip, tail_span_h,...
+            num_spar_vtail, spar_width_vtail, num_plies_vtail, s_v, t_vtail_root, t_vtail_tip, tail_span_v,...
             num_plies_fuse, num_bulkheads, t_bulkhead, area_fraction_bulkhead, density_plywood, fuse_height, fuse_width, fuse_length,...
             num_plies_tailboom, tailboom_length, wing_fudge_factor, htail_fudge_factor, vtail_fudge_factor, fuse_fudge_factor, tailboom_fudge_factor);
 
     end
   
-    weight_vec = [battery,w_wing,w_fuse,w_vtail,w_htail,w_tailboom]
-    position_vec = [0.05,0,0;(chord/2)+(.2*fuse_length),0,0.05;fuse_length/2,0,0;(tail_chord_v/2,0,tail_span_v;1,0,0;(fuse_length+tailboom_length),0,0]
-    [cg] = calc_cg(weight_vec, position_vec)
+    weight_vec = [battery,w_wing,w_fuse,w_vtail,w_htail,w_tailboom];
+    position_vec = [0.05,0,0;
+        (chord/2)+(.2*fuse_length),0,0.05;
+        fuse_length/2,0,0;
+        (tail_chord_v/2)+tailboom_length+fuse_length,0,tail_span_v/2;
+        (tail_chord_h/2)+tailboom_length+fuse_length,0,0;
+        (fuse_length+tailboom_length/2),0,0];
+    [cg] = calc_cg(weight_vec, position_vec);
+    
+    mass_vec = weight_vec/9.81;
+    height_vec = [.035,.13,.0475;
+        .12*chord,chord,wingspan;
+        fuse_height,fuse_length,fuse_width;
+        tail_span_v,tail_chord_v,.12*tail_chord_v;
+        .12*tail_chord_h,tail_chord_h,tail_span_h;
+        
+    
+    component_moi = calc_component_moi(mass_vec,height_vec,width_vec);
     
     q = 1/2*density*v(iterNum)^2;
     
