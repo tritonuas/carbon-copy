@@ -349,9 +349,9 @@ while abs(derivative_cl_over_cd) > 0.001
         t_divinycell = 0.003175;
         t_tip = 0.12*(2*chord(end)*taperRatio)/(1+taperRatio);
         t_root = t_tip/taperRatio;
-        t_htail_root = (2*(tail_area_h/htail_span)*taperRatio)/(1+taperRatio);
+        t_htail_root = (2*(tail_area_h/tail_span_h)*taperRatio)/(1+taperRatio);
         t_htail_tip = t_htail_root/taperRatio;
-        t_vtail_root = (2*(tail_area_v/vtail_span)*taperRatio)/(1+taperRatio);
+        t_vtail_root = (2*(tail_area_v/tail_span_v)*taperRatio)/(1+taperRatio);
         t_vtail_tip = t_vtail_root/taperRatio;
         t_bulkhead = 0.00635;
         density_divinycell = 80;
@@ -391,15 +391,19 @@ while abs(derivative_cl_over_cd) > 0.001
         (fuse_length+tailboom_length/2),0,0];
     [cg] = calc_cg(weight_vec, position_vec);
     
-    mass_vec = weight_vec/9.81;
+    mass_vec = [weight_vec/9.81]';
     height_vec = [.035,.13,.0475;
         .12*chord,chord,wingspan;
         fuse_height,fuse_length,fuse_width;
         tail_span_v,tail_chord_v,.12*tail_chord_v;
         .12*tail_chord_h,tail_chord_h,tail_span_h;
-        
+        .0254,tailboom_length,.0254];
+    width_vec = height_vec(:,[3, 1, 2]);
+
     
-    component_moi = calc_component_moi(mass_vec,height_vec,width_vec);
+    component_moi = calc_component_moi(mass_vec,height_vec,width_vec)
+    
+    quarter_chord = [(chord/2)+(.2*fuse_length),0,0.05]
     
     q = 1/2*density*v(iterNum)^2;
     

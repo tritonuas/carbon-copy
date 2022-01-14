@@ -401,7 +401,10 @@ while abs(derivative_cl_over_cd) > 0.001
     width_vec = height_vec(:,[3, 1, 2]);
 
     
-    component_moi = calc_component_moi(mass_vec,height_vec,width_vec)
+    component_moi = calc_component_moi(mass_vec,height_vec,width_vec);
+    
+    quarter_chord = [(chord/2)+(.2*fuse_length),0,0.05];
+    central_moment = calc_central_moment(component_moi,weight_vec,position_vec,quarter_chord);
     
     q = 1/2*density*v(iterNum)^2;
     
