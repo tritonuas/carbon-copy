@@ -1,7 +1,7 @@
 %%Hi! My name is Andrew, and this is so you can see a push.
 
 %%This is the main script (executable) for the plane design program
-%%As of now, this takes in inputs of wing_span, weight, and initial guesses
+%%As of now, this takes in inputs of wingspan, weight, and initial guesses
 %%for the sizing of the parts, and outputs the ideal lift coefficient 
 %%and wing reference area to maximize cl/cd and therefore maximize range 
 %%and minimize drag for cruise conditions.
@@ -83,7 +83,7 @@ tail_area_v = -1;
 cVS = -1;
 cTail = -1;
 saTailBoom = -1;
-tail_boom_length = -1;
+lenTailBoom = -1;
 wing_area = 5;
 
 %% Desired Parameters/Constraints
@@ -99,12 +99,12 @@ maxLoadFactorTurns = 1.667; %input max load factor for turns
 %   %That value is based on intuition/history and should be iterated on
 % tipChordReq = rootChordReq*taperRatio;
 % avgChordReq = (rootChordReq+tipChordReq)/2;
-% sMinStruct = avgChordReq*wing_span;
+% sMinStruct = avgChordReq*wingSpan;
 % if sMinStruct > sMin
 %     sMin = sMinStruct;
 %     S = linspace(sMin, sMax, numSteps);
 %     SMaster = S;
-%     AR = wing_span^2./S;  %Getting ARs for induced drag calculations
+%     AR = wingSpan^2./S;  %Getting ARs for induced drag calculations
 %     ARMaster = AR;
 % end
 
@@ -155,12 +155,37 @@ maxLoadFactorTurns = 1.667; %input max load factor for turns
 % 
 % %%CONTRAINT: TAIL SIZING
 % %This is based off of Anderson's MAE 155A slides(see stability, last slide)
-C_HT = 0.8;       %Horizontal tail volume coefficient
-C_VT = 0.04;     %Vertical tail volume coefficient
+% C_HT = 0.8;       %Horizontal tail volume coefficient
+% C_VT = 0.04;     %Vertical tail volume coefficient
 
-radius = 30;
+
+%% Function definition
+% outputs: function [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
+% inputs:  = subfunction_name(AR, ARMaster, G, S, SFTime, SMaster, additionalWaypointDist, avgChordReq, cTail, climbAngleReq, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, n, nStall, numSteps, radius, rootChordReq, saFuse, sMax, sMin, sMinStruct, saNose, sTail, saTailBoom, stallSpeed, sweepAngle, taperRatio, timeLimit, tipChordReq, totalTravelDist, velocity, velocityMax, velocityMin, velocityReq, viscosity, weight, wingSpan) 
+
+%Pick Method
+methods = ["DBI"];
+sol = 0; %has a solution been found?)
+
+if find(methods == "DBI")
+    % run the subfunction dbi_sol [with DBI for velocity v and wing area S]
+    [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
+    = dbi_sol(density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, sMinStruct, sMax, saNose, tail_area_h, cHS, tail_area_v, cVS, saTailBoom, tail_boom_radius, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT);
+    sol = 1;
+end
+
+if find(methods == "Step_Iterative")
+    % run the subfunction iter_sol [same as before]
+    [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
+    = step_iter_sol(ARMaster, S, SMaster, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, saNose, tail_area_h, cHS, tail_area_v, cVS, saTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan, C_HT, C_VT);
+    sol = 1;
+end
+if sol == 0
+    disp("Method Selection Invalid. Valid options are: 'DBI', 'Iterative', and 'Analytical'")
+end
 %% Derivative based iteration
-
+function [clOverCd, v, cl, S, wing_loading, chord, AR, load_factor, stall_speed] ...
+    = dbi_sol(density, g, lenFuse, lenNose, tailboom_length, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, sMinStruct, sMax, saNose, tail_area_h, cHS, tail_area_v, cVS, saTailBoom, tail_boom_radius, sweepAngle, taperRatio, viscosity, wingSpan, C_HT, C_VT) 
 %TODO still need to finish validating and cleaning up stuff that is not
 %needed, and finish making the output print statements
 %TODO think about this from a controller standpoint, and how to add Kd and
@@ -181,7 +206,7 @@ delta_S = 0.01; %first step
 while abs(derivative_cl_over_cd) > 0.001
     iterNum = iterNum + 1;
     
-    [AR,chord] = geometric_outputs(x(1),wing_span);
+    [AR,chord] = geometric_outputs(wing_area,wing_span)
     
     weight = 135; % initialize weight       
     v_guess = 20;
@@ -189,24 +214,24 @@ while abs(derivative_cl_over_cd) > 0.001
     while abs(v_guess - v(iterNum)) > 0.1
         v_guess = v(iterNum);
         
-        saWing = x(1)*2;
+        saWing = S(iterNum)*2;
 %         saTail = sTail*2;
         saHS = tail_area_h*2;
         saVS = tail_area_v*2;
         %get the zero-lift drag coeff for this S and velocity
         cd0(iterNum) = getZeroLiftDrag(density, viscosity, v(iterNum), ...
-                   x(1), saWing, chord, saFuse,lenFuse, saNose,lenNose,...
-                   saHS,cHS, saVS,cVS, saTailBoom,tail_boom_length);
+                   S(iterNum), saWing, chord, saFuse,lenFuse, saNose,lenNose,...
+                   saHS,cHS, saVS,cVS, saTailBoom,tailboom_length);
 
         % calculate velocity and lift coefficient
         v(iterNum) = -1;
-        [x(1), v(iterNum), cl(iterNum)] = minDragEq(v(iterNum),...
-          density, x(1), cd0(iterNum), wing_span, weight, taperRatio, sweepAngle);
-        saWing = x(1)*2;
+        [S(iterNum), v(iterNum), cl(iterNum)] = minDragEq(v(iterNum),...
+          density, S(iterNum), cd0(iterNum), wingSpan, weight, taperRatio, sweepAngle);
+        saWing = S(iterNum)*2;
       
         % calculate tail areas and length and tail boom length (and therefore area)
-        [tail_area_h, tail_area_v, tailboom_length] = find_tail_size(wing_span, ...
-        x(1), saWing, chord, C_HT, C_VT, density, viscosity, v(end));
+        [tail_area_h, tail_area_v, tailboom_length] = find_tail_size(wingSpan, ...
+        S(end), saWing, chord(end), C_HT, C_VT, density, viscosity, v(end));
         sTail = tail_area_h + tail_area_v;
         saTailBoom = tailboom_length*2*pi*tail_boom_radius;
         AR_h=4;
@@ -253,7 +278,7 @@ while abs(derivative_cl_over_cd) > 0.001
         thickness_per_ply = 0.0003;
         thicknesses = ones(length(thetas),1)*thickness_per_ply;
 
-        Rm = -lift*(wing_span/4); % reaction moment at root
+        Rm = -lift*(wingSpan/4); % reaction moment at root
         % t_airfoil = airfoil thickness
         Fx = -Rm/t_airfoil; %Force
         l = 0.8*chord - 0.2*chord; % length of wing box
@@ -263,10 +288,10 @@ while abs(derivative_cl_over_cd) > 0.001
         cdi(iterNum) = cl(iterNum)^2*k;
         %get cd so we can later get cl/cd
         cd(iterNum) = cd0(iterNum) + cdi(iterNum);
-        drag = 1/2*density*v(iterNum)^2*cd(iterNum)*x(1);
-        Rm_y = drag*(wing_span/4); % reaction moment at root in the y direction
+        drag = 1/2*density*v(iterNum)^2*cd(iterNum)*S(iterNum);
+        Rm_y = drag*(wingSpan/4); % reaction moment at root in the y direction
         wing_box_distance  = 0.8*chord - 0.2*chord; % distance between two spars 
-        Nxy = Rm_y/(wing_box_distance*(wing_span/2));
+        Nxy = Rm_y/(wing_box_distance*(wingSpan/2));
 
         mech_loading = [Nx;Ny;Nxy;Mx;My;Mxy];
 
@@ -308,7 +333,7 @@ while abs(derivative_cl_over_cd) > 0.001
         density_balsa = 200;
         density_plywood = 680;
         density_blue_foam = 80;
-        wing_span = wing_span;
+        wingspan = wingSpan;
         num_bulkheads = 5;
         area_fraction_bulkhead = 0.2;
         fuse_height = 0.25;
@@ -322,8 +347,8 @@ while abs(derivative_cl_over_cd) > 0.001
         fuse_fudge_factor  = 1;
 
 
-        [weight,w_wing,w_htail,w_vtail,w_fuse,w_tailboom] = compute_weight_analytic(battery, payload, x(1), num_spar_wing,  spar_width_wing, density_balsa, t_divinycell, density_divinycell,...
-            num_plies_wing, density_carbon_epoxy, t_tip, t_root, wing_span, fudge_factor,...
+        [weight,w_wing,w_htail,w_vtail,w_fuse,w_tailboom] = compute_weight_analytic(battery, payload, S(end), num_spar_wing,  spar_width_wing, density_balsa, t_divinycell, density_divinycell,...
+            num_plies_wing, density_carbon_epoxy, t_tip, t_root, wingspan, fudge_factor,...
             num_spar_htail, spar_width_htail, num_plies_htail, s_h, density_blue_foam, t_htail_root, t_htail_tip, tail_span_h,...
             num_spar_vtail, spar_width_vtail, num_plies_vtail, s_v, t_vtail_root, t_vtail_tip, tail_span_v,...
             num_plies_fuse, num_bulkheads, t_bulkhead, area_fraction_bulkhead, density_plywood, fuse_height, fuse_width, fuse_length,...
@@ -342,7 +367,7 @@ while abs(derivative_cl_over_cd) > 0.001
     
     mass_vec = [weight_vec/9.81]';
     height_vec = [.035,.13,.0475;
-        .12*chord,chord,wing_span;
+        .12*chord,chord,wingspan;
         fuse_height,fuse_length,fuse_width;
         tail_span_v,tail_chord_v,.12*tail_chord_v;
         .12*tail_chord_h,tail_chord_h,tail_span_h;
@@ -363,13 +388,13 @@ while abs(derivative_cl_over_cd) > 0.001
          hasS = 0;
          hasCl = 1;
          %Overriding the S to meet the new constraint with a fixed cl
-         [lift,density,v(iterNum),x(1), cl(iterNum)] = liftEq(hasLift,lift,...
-         hasDensity,density,hasVel,v(iterNum),hasS,x(1),hasCl,cl(iterNum));
+         [lift,density,v(iterNum),S(iterNum), cl(iterNum)] = liftEq(hasLift,lift,...
+         hasDensity,density,hasVel,v(iterNum),hasS,S(iterNum),hasCl,cl(iterNum));
          %Resetting design variables for future iterations
          hasS = 1;
          hasCl = 0;
-         chord(iterNum) = x(1)/wing_span;   %updating chord for new S
-         AR = wing_span^2/x(1);    %updating asepct ratio for new S
+         chord(iterNum) = S(iterNum)/wingSpan;   %updating chord for new S
+         AR = wingSpan^2/S(iterNum);    %updating asepct ratio for new S
     end
 
     %get induced drag so we can later get cd
@@ -380,7 +405,20 @@ while abs(derivative_cl_over_cd) > 0.001
     %get cl/cd for performance comparison
     clOverCd(iterNum) = cl(iterNum)/cd(iterNum);
 
+    if iterNum == 1
+        %If initial S > sMax (and could not check smaller values)
+        if S(iterNum) == sMax
+            delta_S = -delta_S;
+        end
+        S(iterNum+1) = S(iterNum) + delta_S;
+    else
+        d_cl_over_cd = clOverCd(iterNum) - clOverCd(iterNum-1);
+        derivative_cl_over_cd(iterNum) = d_cl_over_cd/delta_S;
+        delta_S = Kp_S*derivative_cl_over_cd(iterNum);
+        S(iterNum+1) = S(iterNum) + delta_S;
+    end
 end
+S = S(1:end-1);
 
 figure(1);
 plot(2:iterNum, clOverCd(2:end), '-bo');
@@ -418,11 +456,12 @@ end
 disp("Stall speed: " + stall_speed);
 % 
 
+end
 
 
 %% Stepwise,Nested Iterative solution
 function [maxClOverCd_sol, vel_sol, best_cl_sol, best_S_sol, wing_loading, best_chord_sol, best_AR_sol, nIter, stallSpeedIter] ...
-    = step_iter_sol(ARMaster, S, SMaster, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, saNose, tail_area_h, cHS, tail_area_v, cVS, saTailBoom, sweepAngle, taperRatio, velocity, viscosity, wing_span, C_HT, C_VT) 
+    = step_iter_sol(ARMaster, S, SMaster, density, g, lenFuse, lenNose, lenTailBoom, lift, maxClCruise, maxLoadFactorStall, maxLoadFactorTurns, radius, saFuse, saNose, tail_area_h, cHS, tail_area_v, cVS, saTailBoom, sweepAngle, taperRatio, velocity, viscosity, wingSpan, C_HT, C_VT) 
 %declaring that I have these variables for use of the lift equation
 hasLift = 1;
 hasDensity = 1;
@@ -462,7 +501,7 @@ maxOfMaxClOverCd = 0;
 for j = 1:length(velocity)  %for every velocity...
     maxClOverCd = 0;
     S = SMaster;  %This is to remove any changes from proir velocities
-    chord = SMaster/wing_span;
+    chord = SMaster/wingSpan;
     AR = ARMaster;
     
     for i = 1:length(S) %for every wing area...
@@ -536,7 +575,7 @@ for j = 1:length(velocity)  %for every velocity...
         density_balsa = 200;
         density_plywood = 680;
         density_blue_foam = 80;
-        wing_span = wing_span;
+        wingspan = wingSpan;
         num_bulkheads = 5;
         area_fraction_bulkhead = 0.2;
         fuse_height = 0.25;
@@ -552,7 +591,7 @@ for j = 1:length(velocity)  %for every velocity...
 
 
         weight = compute_weight_analytic(battery, payload, S(i), num_spar_wing,  spar_width_wing, density_balsa, t_divinycell, density_divinycell,...
-            num_plies_wing, density_carbon_epoxy, t_tip, t_root, wing_span, fudge_factor,...
+            num_plies_wing, density_carbon_epoxy, t_tip, t_root, wingspan, fudge_factor,...
             num_spar_htail, spar_width_htail, num_plies_htail, s_h, density_blue_foam, t_htail_root, t_htail_tip, htail_span,...
             num_spar_vtail, spar_width_vtail, num_plies_vtail, s_v, t_vtail_root, t_vtail_tip, vtail_span,...
             num_plies_fuse, num_bulkheads, t_bulkhead, area_fraction_bulkhead, density_plywood, fuse_height, fuse_width, fuse_length,...
@@ -579,8 +618,8 @@ for j = 1:length(velocity)  %for every velocity...
             %Resetting design variables for future iterations
             hasS = 1;
             hasCl = 0;
-            chord(i) = S(i)/wing_span;   %updating chord for new S
-            AR(i) = wing_span^2/S(i);    %updating asepct ratio for new S
+            chord(i) = S(i)/wingSpan;   %updating chord for new S
+            AR(i) = wingSpan^2/S(i);    %updating asepct ratio for new S
         end
 
         saWing = S(i)*2;
@@ -611,8 +650,8 @@ for j = 1:length(velocity)  %for every velocity...
     %get characteristics of each local best performance
     maxClOverCdIterate(j) = maxClOverCd;
     bestS(j) = S(maxIndex);
-    bestchord(j) = bestS(j)/wing_span;
-    bestAR(j) = wing_span^2/bestS(j);
+    bestchord(j) = bestS(j)/wingSpan;
+    bestAR(j) = wingSpan^2/bestS(j);
     bestcd0(j) = cd0(maxIndex);
     zeroLiftDrag(j) = 1/2*density*velocity(j)^2*bestS(j)*bestcd0(j); %for plotting purposes
     bestcdi(j) = cdi(maxIndex);
@@ -656,7 +695,7 @@ wing_loading = lift/bestS(maxOfMaxIndex);
 best_chord_sol = bestchord(maxOfMaxIndex);
 best_AR_sol = bestAR(maxOfMaxIndex);
 
-[tail_area_h, tail_area_v, tail_boom_length] = find_tail_size(wing_span, ...
+[tail_area_h, tail_area_v, tail_boom_length] = find_tail_size(wingSpan, ...
     best_S_sol, best_S_sol*2, best_chord_sol, C_HT, C_VT, density, viscosity, vel_sol);
 
 disp("----------------------------");
