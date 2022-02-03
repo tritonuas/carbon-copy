@@ -104,7 +104,7 @@ wing_num_plies = 2;
 fuse_num_plies = 2;
 wing_num_spar = 2;
 vs_num_spar = 1.5;
-tail_num_sphs_AR = 1.5; %num_sphs_ARtail
+hs_num_spar = 1.5; %num_sphs_ARtail
 wing_spar_width = 0.0127;
 spar_width_htail = wing_spar_width;
 spar_width_vtail = wing_spar_width;
@@ -165,7 +165,6 @@ delta_T = 0;
 airfoil_thickness = .1;
 thetas = 90;
 rad_or_deg = "deg";
-thickness_per_ply = 0.0003;
 thicknesses = ones(length(thetas),1)*thickness_per_ply;
 Rm = -lift*(wing_span/4); % reaction moment at root
 % t_airfoil = airfoil thickness
@@ -194,7 +193,6 @@ hs_chord=hs_area/hs_span;
 vs_chord=vs_area/vs_span;
 
 %weight vec
-battery = 1;
 wing_weight = 1;
 fuse_weight = 1;
 vs_weight = 1;
@@ -209,6 +207,16 @@ position_vec = [0.05,0,0;
     (vs_chord/2)+tail_boom_length+fuse_length,0,vs_span/2;
     (hs_chord/2)+tail_boom_length+fuse_length,0,0;
     (fuse_length+tail_boom_length/2),0,0];
+    
+%mass vector  
+mass_vec = [weight_vec/9.81]';
+    height_vec = [.035,.13,.0475;
+    .12*chord,chord,wing_span;
+    fuse_height,fuse_length,fuse_width;
+    vs_span,vs_chord,.12*vs_chord;
+    .12*hs_chord,hs_chord,hs_span;
+    .0254,tail_boom_length,.0254];
+    width_vec = height_vec(:,[3, 1, 2]);
 
 %% Desired Parameters/Constraints
 
@@ -300,11 +308,12 @@ hasCl = 0;      %This is in preperation for the lift equation
 x = [wing_area];
 Kp_S = 1;
 iterNum = 0;
-derivative_cl_over_cd = 1;   %to run the loop
+gradient = 1;   %to run the loop
 delta_S = 0.01; %first step
-while abs(derivative_cl_over_cd) > 0.001
+while norm(gradient) > 0.001
     iterNum = iterNum + 1;
     wing_area = x(1);
+    for i = 1:(length(x)+1)
     [AR,chord] = geometric_outputs(wing_area,wing_span);
     
     weight = 135; % initialize weight       
@@ -343,30 +352,12 @@ while abs(derivative_cl_over_cd) > 0.001
 
         [weight,wing_weight,hs_weight,vs_weight,fuse_weight,tail_boom_weight] = compute_weight_analytic(battery, payload, wing_area, wing_num_spar,  wing_spar_width, balsa_density, divinycell_thickness, divinycell_density,...
             wing_num_plies, carbon_epoxy_density, tip_thickness, root_thickness, wing_span, fudge_factor,...
-            tail_num_sphs_AR, spar_width_htail, hs_num_plies, hs_area, blue_foam_density, hs_root_thickness, hs_tip_thickness, hs_span,...
+            hs_num_spar, spar_width_htail, hs_num_plies, hs_area, blue_foam_density, hs_root_thickness, hs_tip_thickness, hs_span,...
             vs_num_spar, spar_width_vtail, vs_num_plies, vs_area, vs_root_thickness, vs_tip_thickness, vs_span,...
             fuse_num_plies, bulkheads_num, bulkhead_thickness, bulkhead_area_fraction, plywood_density, fuse_height, fuse_width, fuse_length,...
             tail_boom_num_plies, tail_boom_length, wing_fudge_factor, hs_fudge_factor, vs_fudge_factor, fuse_fudge_factor, tailboom_fudge_factor);
 
     end
-  
-    weight_vec = [battery,wing_weight,fuse_weight,vs_weight,hs_weight,tail_boom_weight];
-    position_vec = [0.05,0,0;
-        (chord/2)+(.2*fuse_length),0,0.05;
-        fuse_length/2,0,0;
-        (vs_chord/2)+tail_boom_length+fuse_length,0,vs_span/2;
-        (hs_chord/2)+tail_boom_length+fuse_length,0,0;
-        (fuse_length+tail_boom_length/2),0,0];
-    [cg] = calc_cg(weight_vec, position_vec);
-    
-    mass_vec = [weight_vec/9.81]';
-    height_vec = [.035,.13,.0475;
-        .12*chord,chord,wing_span;
-        fuse_height,fuse_length,fuse_width;
-        vs_span,vs_chord,.12*vs_chord;
-        .12*hs_chord,hs_chord,hs_span;
-        .0254,tail_boom_length,.0254];
-    width_vec = height_vec(:,[3, 1, 2]);
 
     
     component_moi = calc_component_moi(mass_vec,height_vec,width_vec);
@@ -398,8 +389,15 @@ while abs(derivative_cl_over_cd) > 0.001
     cd = cd0 + cdi;
     %get cl/cd for performance comparison
     clOverCd = cl/cd;
+    %save f vector for next loop
+    end
     
-    break
+    for i = length(x)
+        %do finite difference here
+    end
+    x_history(:,i) = x
+    gradient_norm(i) = norm(gradient)
+    x = gradient_descent_optimizer(gradient,alpha,x)
 
 end
 
