@@ -45,6 +45,7 @@ addpath("tail");
 addpath("Airfoil");
 addpath("Structures");
 addpath("CM_Calc");
+addpath("optimizers");
 %% Constants
 g = 9.81;                   %sea level Earth gravity
 density = 1.225;            %sea level air density
@@ -66,6 +67,8 @@ chord = 1;
 AR = 1;
 v = 20;
 
+alpha = 0.1;
+h = 0.1;
 
 hs_span = .5;
 vs_span = .5;
@@ -152,7 +155,7 @@ mat_strengths_t = [sigma_1T;sigma_2T;sigma_12];
 mat_strengths_c = [sigma_1C;sigma_2C;sigma_12];
 
 fail_crit = "max_stress";
-print_output = true;
+print_output = false;
 SF = 2;
 
 Nx = 100;
@@ -306,14 +309,18 @@ hasS = 1;       %declaring that I have S and want to calculate for Cl
 hasCl = 0;      %This is in preperation for the lift equation
 
 x = [wing_area];
-Kp_S = 1;
-iterNum = 0;
-gradient = 1;   %to run the loop
-delta_S = 0.01; %first step
+iter_num = 0;
+gradient = ones(length(x),1);   %to run the loop
 while norm(gradient) > 0.001
-    iterNum = iterNum + 1;
-    wing_area = x(1);
+    iter_num = iter_num + 1;
     for i = 1:(length(x)+1)
+    if i ~= 1
+    x_step = zeros(length(x),1);
+    x_step(i-1) = h;
+    x = x + x_step;
+    end
+    wing_area = x(1);
+        
     [AR,chord] = geometric_outputs(wing_area,wing_span);
     
     weight = 135; % initialize weight       
@@ -346,7 +353,7 @@ while norm(gradient) > 0.001
          thermal_loading, ABD,MS, failed_plies, failed_side, failed_z,...
          fail_mode, fail_tcs] = structural_model(mat_props, thetas, ...
          rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec,...
-         mat_strengths_t,fail_crit,mat_strengths_c, SF, print_output)
+         mat_strengths_t,fail_crit,mat_strengths_c, SF, print_output);
         
 
 
@@ -389,16 +396,17 @@ while norm(gradient) > 0.001
     cd = cd0 + cdi;
     %get cl/cd for performance comparison
     clOverCd = cl/cd;
-    %save f vector for next loop
+    if i == 1
+        f_x = clOverCd;
+    else
+        f_x_plus_h = clOverCd;
+        gradient(i-1) = (f_x_plus_h - f_x)/h;
+        x = x - x_step;
     end
-    
-    for i = length(x)
-        %do finite difference here
-    end
-    x_history(:,i) = x
-    gradient_norm(i) = norm(gradient)
-    x = gradient_descent_optimizer(gradient,alpha,x)
-
+    end     
+    x_history(:,iter_num) = x;
+    gradient_norm(iter_num) = norm(gradient);
+    x = gradient_descent_optimizer(gradient,alpha,x); 
 end
 
 % figure(1);
@@ -420,9 +428,9 @@ wing_loading = lift/wing_area;
 disp("----------------------------");
 disp("DBI_ANA SOLUTION");
 disp("----------------------------");
-disp("Max cl/cd: " + clOverCd(end));
-disp("Velocity: " + v(end));
-disp("cl: " + cl(end));
+disp("Max cl/cd: " + clOverCd);
+disp("Velocity: " + v);
+disp("cl: " + cl);
 disp("Wing Area: " + wing_area);
 disp("Wing loading: " + wing_loading);
 disp("Chord: " + chord);
