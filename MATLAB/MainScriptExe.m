@@ -403,6 +403,7 @@ while norm(gradient) > 0.001
         gradient(i-1) = (f_x_plus_h - f_x)/h;
         x = x - x_step;
     end
+    break
     end     
     x_history(:,iter_num) = x;
     gradient_norm(iter_num) = norm(gradient);
