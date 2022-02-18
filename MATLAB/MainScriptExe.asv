@@ -143,7 +143,7 @@ plywood_density = 680;
 blue_foam_density = 80;
 
 %structures inputs
- E1 = 135e9; % Pa
+E1 = 135e9; % Pa
 E2 = 10e9; % Pa
 G12 = 5e9; % Pa
 Nu12 = 0.30;
@@ -155,7 +155,7 @@ sigma_1C = 1200e6;
 sigma_2T = 50e6;
 sigma_2C = 250e6;
 sigma_12 = 70e6;
- mat_props = [E1;E2;G12;Nu12];
+mat_props = [E1;E2;G12;Nu12];
 cte_vec = [cte1; cte2; 0];
 mat_strengths_t = [sigma_1T;sigma_2T;sigma_12];
 mat_strengths_c = [sigma_1C;sigma_2C;sigma_12];
@@ -213,8 +213,8 @@ position_vec = [0.05,0,0;
     (fuse_length+tail_boom_length/2),0,0];
     
 %mass vector  
-mass_vec = [weight_vec/9.81]';
-    height_vec = [.035,.13,.0475;
+mass_vec = (weight_vec/9.81)';
+height_vec = [.035,.13,.0475;
     .12*wing_chord,wing_chord,wing_span;
     fuse_height,fuse_length,fuse_width;
     vs_span,vs_chord,.12*vs_chord;
@@ -320,11 +320,17 @@ while norm(gradient) > 0.001
     x_step(i-1) = h;
     x = x + x_step;
     end
-    wing_chord = x(1);
+    wing_chord = x(1)
         
     [AR,wing_area] = geometric_outputs(wing_chord,wing_span);
     
-    weight = 135; % initialize weight       
+    [weight,wing_weight,hs_weight,vs_weight,fuse_weight,tail_boom_weight] = compute_weight_analytic(battery, payload, wing_area, wing_num_spar,  wing_spar_width, balsa_density, divinycell_thickness, divinycell_density,...
+            wing_num_plies, carbon_epoxy_density, wing_tip_thickness, wing_root_thickness, wing_span, fudge_factor,...
+            hs_num_spar, hs_spar_width, hs_num_plies, hs_area, blue_foam_density, hs_root_thickness, hs_tip_thickness, hs_span,...
+            vs_num_spar, vs_spar_width, vs_num_plies, vs_area, vs_root_thickness, vs_tip_thickness, vs_span,...
+            fuse_num_plies, bulkheads_num, bulkhead_thickness, bulkhead_area_fraction, plywood_density, fuse_height, fuse_width, fuse_length,...
+            tail_boom_num_plies, tail_boom_length, wing_fudge_factor, hs_fudge_factor, vs_fudge_factor, fuse_fudge_factor, tailboom_fudge_factor);
+           
     v_guess = 20;
     v = 10;
     while abs(v_guess - v) > 0.1
@@ -346,24 +352,9 @@ while norm(gradient) > 0.001
         wing_surface_area = wing_area*2;
       
         % calculate tail areas and length and tail boom length (and therefore area)
-        [hs_area, vs_area, tail_boom_length] = find_tail_size(wing_span, ...
-        wing_area, wing_surface_area, wing_chord, C_HT, C_VT, density, viscosity, v(end));
+%         [hs_area, vs_area, tail_boom_length] = find_tail_size(wing_span, ...
+%         wing_area, wing_surface_area, wing_chord, C_HT, C_VT, density, viscosity, v(end));
         
-        
-        [stresses_bot, stresses_top,z_all,mid_strains_and_curvatures,...
-         thermal_loading, ABD,MS, failed_plies, failed_side, failed_z,...
-         fail_mode, fail_tcs] = structural_model(mat_props, thetas, ...
-         rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec,...
-         mat_strengths_t,fail_crit,mat_strengths_c, SF, print_output);
-        
-
-
-        [weight,wing_weight,hs_weight,vs_weight,fuse_weight,tail_boom_weight] = compute_weight_analytic(battery, payload, wing_area, wing_num_spar,  wing_spar_width, balsa_density, divinycell_thickness, divinycell_density,...
-            wing_num_plies, carbon_epoxy_density, wing_tip_thickness, wing_root_thickness, wing_span, fudge_factor,...
-            hs_num_spar, hs_spar_width, hs_num_plies, hs_area, blue_foam_density, hs_root_thickness, hs_tip_thickness, hs_span,...
-            vs_num_spar, vs_spar_width, vs_num_plies, vs_area, vs_root_thickness, vs_tip_thickness, vs_span,...
-            fuse_num_plies, bulkheads_num, bulkhead_thickness, bulkhead_area_fraction, plywood_density, fuse_height, fuse_width, fuse_length,...
-            tail_boom_num_plies, tail_boom_length, wing_fudge_factor, hs_fudge_factor, vs_fudge_factor, fuse_fudge_factor, tailboom_fudge_factor);
 
     end
 
@@ -373,30 +364,42 @@ while norm(gradient) > 0.001
     quarter_chord = [(wing_chord/2)+(.2*fuse_length),0,0.05];
     central_moment = calc_central_moment(component_moi,weight_vec,position_vec,quarter_chord);
     
-    q = 1/2*density*v^2;
-    
-    %Placing a maximum lift coefficient due to airfoil constraints
-    if cl > maxClCruise
-         cl = maxClCruise;
-         hasS = 0;
-         hasCl = 1;
-         %Overriding the S to meet the new constraint with a fixed cl
-         [lift,density,v,wing_area, cl] = liftEq(hasLift,lift,...
-         hasDensity,density,hasVel,v,hasS,wing_area,hasCl,cl);
-         %Resetting design variables for future iterations
-         hasS = 1;
-         hasCl = 0;
-         wing_chord = wing_area/wing_span;   %updating wing_chord for new S
-         AR = wing_span^2/wing_area;    %updating asepct ratio for new S
-    end
-
     %get induced drag so we can later get cd
     k = getK(AR, taperRatio, sweepAngle);
     cdi = cl^2*k;
     %get cd so we can later get cl/cd
     cd = cd0 + cdi;
     %get cl/cd for performance comparison
-    clOverCd = cl/cd;
+    clOverCd = cl/cd
+    
+    Nx = 100;
+    Ny = 0;
+    Nxy = 0;
+    Mx = 0;
+    My = 0;
+    Mxy = 0;
+    delta_T = 0;
+    airfoil_thickness = .1;
+    thetas = 90;
+    rad_or_deg = "deg";
+    thicknesses = ones(length(thetas),1)*thickness_per_ply;
+    Rm = -lift*(wing_span/4); % reaction moment at root
+    % t_airfoil = airfoil thickness
+    Fx = -Rm/airfoil_thickness; %Force
+    l = 0.8*wing_chord - 0.2*wing_chord; % length of wing box
+    Nx = Fx/l; % in-plane stress
+    drag = 1/2*density*v^2*cd*wing_area;
+    Rm_y = drag*(wing_span/4); % reaction moment at root in the y direction
+    wing_box_distance  = 0.8*wing_chord - 0.2*wing_chord; % distance between two spars 
+    Nxy = Rm_y/(wing_box_distance*(wing_span/2));
+    mech_loading = [Nx;Ny;Nxy;Mx;My;Mxy];
+    
+    [stresses_bot, stresses_top,z_all,mid_strains_and_curvatures,...
+     thermal_loading, ABD,MS, failed_plies, failed_side, failed_z,...
+     fail_mode, fail_tcs] = structural_model(mat_props, thetas, ...
+     rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec,...
+     mat_strengths_t,fail_crit,mat_strengths_c, SF, print_output);
+
     if i == 1
         f_x = clOverCd;
     else
