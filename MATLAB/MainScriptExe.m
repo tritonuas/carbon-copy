@@ -59,8 +59,8 @@ taperRatio = getTaper(sweepAngle);  %see function for source of eq
 %% Inputs
 % I might make this whole program a function in the future
 
-alpha = 0.1;
-h = 0.1;
+alpha = 0.01;
+h = 1e-5;
 
 %operating conditions
 v = 20;
@@ -399,11 +399,23 @@ while norm(gradient) > 0.001
      fail_mode, fail_tcs] = structural_model(mat_props, thetas, ...
      rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec,...
      mat_strengths_t,fail_crit,mat_strengths_c, SF, print_output);
-
+ 
+    min_ms = min(MS(:));
+    
+    ms_constraint = -min_ms;
+    ms_constraint_rho = 10;
+    
+    constraint_vec = [ms_constraint]; %make sure to make vertical
+    constraint_rho_vec = [ms_constraint_rho];
+    active_constraint_vec = constraint_vec(constraint_vec > 0);
+    active_constraint_rho_vec = constraint_rho_vec(constraint_vec > 0);
+    penalty_scaling_factors = diag(active_constraint_rho_vec);
+    objective_penalty = 1/2 * active_constraint_vec' * penalty_scaling_factors * active_constraint_vec;
+    
     if i == 1
-        f_x = clOverCd;
+        f_x = -clOverCd + objective_penalty;
     else
-        f_x_plus_h = clOverCd;
+        f_x_plus_h = -clOverCd + objective_penalty;
         gradient(i-1) = (f_x_plus_h - f_x)/h;
         x = x - x_step;
     end
