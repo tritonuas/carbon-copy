@@ -406,20 +406,19 @@ while norm(gradient) > 0.001
     ms_constraint_rho = 10;
     
     constraint_vec = [ms_constraint]; %make sure to make vertical
-    constraint_rho_vec = [ms_constraint_rho]
+    constraint_rho_vec = [ms_constraint_rho];
     active_constraint_vec = constraint_vec(constraint_vec > 0);
     active_constraint_rho_vec = constraint_rho_vec(constraint_vec > 0);
-    pentalty_scaling_factors = diag([active_constraint_rho_vec]);
-    objective_pentalty = 1/2 * active_constraint_vec' * pentalty_scaling_factors * active_constraint_vec 
+    penalty_scaling_factors = diag(active_constraint_rho_vec);
+    objective_penalty = 1/2 * active_constraint_vec' * penalty_scaling_factors * active_constraint_vec;
     
     if i == 1
-        f_x = -clOverCd;
+        f_x = -clOverCd + objective_penalty;
     else
-        f_x_plus_h = -clOverCd;
+        f_x_plus_h = -clOverCd + objective_penalty;
         gradient(i-1) = (f_x_plus_h - f_x)/h;
         x = x - x_step;
     end
-    break
     end     
     x_history(:,iter_num) = x;
     gradient_norm(iter_num) = norm(gradient);

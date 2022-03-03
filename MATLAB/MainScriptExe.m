@@ -78,7 +78,7 @@ payload = 71.5719;
 cl = .1;
 cd0 = .1;
 wing_span = 3.65;
-wing_chord = 5;
+wing_chord = 10;
 wing_area = wing_span*wing_chord;
 AR = wing_chord^2/wing_area;
 wing_num_plies = 2;
@@ -411,15 +411,17 @@ while norm(gradient) > 0.001
     active_constraint_rho_vec = constraint_rho_vec(constraint_vec > 0);
     penalty_scaling_factors = diag(active_constraint_rho_vec);
     objective_penalty = 1/2 * active_constraint_vec' * penalty_scaling_factors * active_constraint_vec;
+    if length(objective_penalty) == 0
+        objective_penalty = 0;
+    end
     
     if i == 1
         f_x = -clOverCd + objective_penalty;
     else
         f_x_plus_h = -clOverCd + objective_penalty;
-        gradient(i-1) = (f_x_plus_h - f_x)/h;
+        gradient(i-1) = (f_x_plus_h - f_x)/h
         x = x - x_step;
     end
-    break
     end     
     x_history(:,iter_num) = x;
     gradient_norm(iter_num) = norm(gradient);
