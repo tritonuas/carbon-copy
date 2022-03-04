@@ -59,7 +59,7 @@ taperRatio = getTaper(sweepAngle);  %see function for source of eq
 %% Inputs
 % I might make this whole program a function in the future
 
-alpha = 0.01;
+alpha = .25;
 h = 1e-5;
 
 %operating conditions
@@ -78,7 +78,7 @@ payload = 71.5719;
 cl = .1;
 cd0 = .1;
 wing_span = 3.65;
-wing_chord = 5;
+wing_chord = 10;
 wing_area = wing_span*wing_chord;
 AR = wing_chord^2/wing_area;
 wing_num_plies = 2;
@@ -320,7 +320,7 @@ while norm(gradient) > 0.001
     x_step(i-1) = h;
     x = x + x_step;
     end
-    wing_chord = x(1)
+    wing_chord = x(1);
         
     [AR,wing_area] = geometric_outputs(wing_chord,wing_span);
     
@@ -370,7 +370,7 @@ while norm(gradient) > 0.001
     %get cd so we can later get cl/cd
     cd = cd0 + cdi;
     %get cl/cd for performance comparison
-    clOverCd = cl/cd
+    clOverCd = cl/cd;
     
     Nx = 100;
     Ny = 0;
@@ -411,6 +411,9 @@ while norm(gradient) > 0.001
     active_constraint_rho_vec = constraint_rho_vec(constraint_vec > 0);
     penalty_scaling_factors = diag(active_constraint_rho_vec);
     objective_penalty = 1/2 * active_constraint_vec' * penalty_scaling_factors * active_constraint_vec;
+    if isempty(objective_penalty)
+        objective_penalty = 0;
+    end
     
     if i == 1
         f_x = -clOverCd + objective_penalty;
@@ -421,9 +424,23 @@ while norm(gradient) > 0.001
     end
     end     
     x_history(:,iter_num) = x;
-    gradient_norm(iter_num) = norm(gradient);
+    objective_history(iter_num) = f_x;
+    gradient_norm(iter_num) = gradient;
     x = gradient_descent_optimizer(gradient,alpha,x); 
 end
+
+figure(1);
+plot((1:iter_num),x_history(1,:))
+xlabel("Iteration Number"); ylabel("Wing Chord"); 
+title("Gradient-Based Iteration: Wing Chord vs. Iteration Number");
+figure(2);
+plot((1:iter_num),gradient_norm)
+xlabel("Iteration Number"); ylabel("Gradient Norm"); 
+title("Gradient-Based Iteration: Gradient Norm vs. Iteration Number");
+figure(3);
+plot((1:iter_num),objective_history)
+xlabel("Iteration Number"); ylabel("Objective"); 
+title("Gradient-Based Iteration: Objective vs. Iteration Number");
 
 % figure(1);
 % plot(2:iterNum, clOverCd(2:end), '-bo');
@@ -459,8 +476,126 @@ if load_factor > maxLoadFactorTurns + 0.001
     disp("Invalid solution! Load factor constraint not satisfied.");
 end
 disp("Stall speed: " + stall_speed);
-% 
 
+%% debugging brute force method
+wing_chords = linspace(.001,11,1000);
+iter_num = 0;
+for j = 1:length(wing_chords)
+    x(1) = wing_chords(j)
+    iter_num = iter_num + 1;
+    for i = 1:(length(x)+1)
+    if i ~= 1
+    x_step = zeros(length(x),1);
+    x_step(i-1) = h;
+    x = x + x_step;
+    end
+    wing_chord = x(1);
+        
+    [AR,wing_area] = geometric_outputs(wing_chord,wing_span);
+    
+    [weight,wing_weight,hs_weight,vs_weight,fuse_weight,tail_boom_weight] = compute_weight_analytic(battery, payload, wing_area, wing_num_spar,  wing_spar_width, balsa_density, divinycell_thickness, divinycell_density,...
+            wing_num_plies, carbon_epoxy_density, wing_tip_thickness, wing_root_thickness, wing_span, fudge_factor,...
+            hs_num_spar, hs_spar_width, hs_num_plies, hs_area, blue_foam_density, hs_root_thickness, hs_tip_thickness, hs_span,...
+            vs_num_spar, vs_spar_width, vs_num_plies, vs_area, vs_root_thickness, vs_tip_thickness, vs_span,...
+            fuse_num_plies, bulkheads_num, bulkhead_thickness, bulkhead_area_fraction, plywood_density, fuse_height, fuse_width, fuse_length,...
+            tail_boom_num_plies, tail_boom_length, wing_fudge_factor, hs_fudge_factor, vs_fudge_factor, fuse_fudge_factor, tailboom_fudge_factor);
+           
+    v_guess = 20;
+    v = 10;
+    while abs(v_guess - v) > 0.1
+        v_guess = v;
+        
+        wing_surface_area = wing_area*2;
+%         saTail = tail_area_total*2;
+        hs_surface_area = hs_area*2;
+        vs_surface_area = vs_area*2;
+        %get the zero-lift drag coeff for this S and velocity
+        cd0 = getZeroLiftDrag(density, viscosity, v, ...
+                   wing_area, wing_surface_area, wing_chord, fuse_surface_area,fuse_length, nose_surface_area,nose_length,...
+                   hs_surface_area,hs_chord, vs_surface_area,vs_chord, tail_boom_surface_area,tail_boom_length);
+
+        % calculate velocity and lift coefficient
+        v = -1;
+        [wing_area, v, cl] = minDragEq(v,...
+          density, wing_area, cd0, wing_span, weight, taperRatio, sweepAngle);
+        wing_surface_area = wing_area*2;
+      
+        % calculate tail areas and length and tail boom length (and therefore area)
+%         [hs_area, vs_area, tail_boom_length] = find_tail_size(wing_span, ...
+%         wing_area, wing_surface_area, wing_chord, C_HT, C_VT, density, viscosity, v(end));
+        
+
+    end
+
+    
+    component_moi = calc_component_moi(mass_vec,height_vec,width_vec);
+    
+    quarter_chord = [(wing_chord/2)+(.2*fuse_length),0,0.05];
+    central_moment = calc_central_moment(component_moi,weight_vec,position_vec,quarter_chord);
+    
+    %get induced drag so we can later get cd
+    k = getK(AR, taperRatio, sweepAngle);
+    cdi = cl^2*k;
+    %get cd so we can later get cl/cd
+    cd = cd0 + cdi;
+    %get cl/cd for performance comparison
+    clOverCd = cl/cd;
+    
+    Nx = 100;
+    Ny = 0;
+    Nxy = 0;
+    Mx = 0;
+    My = 0;
+    Mxy = 0;
+    delta_T = 0;
+    airfoil_thickness = .1;
+    thetas = 90;
+    rad_or_deg = "deg";
+    thicknesses = ones(length(thetas),1)*thickness_per_ply;
+    Rm = -lift*(wing_span/4); % reaction moment at root
+    % t_airfoil = airfoil thickness
+    Fx = -Rm/airfoil_thickness; %Force
+    l = 0.8*wing_chord - 0.2*wing_chord; % length of wing box
+    Nx = Fx/l; % in-plane stress
+    drag = 1/2*density*v^2*cd*wing_area;
+    Rm_y = drag*(wing_span/4); % reaction moment at root in the y direction
+    wing_box_distance  = 0.8*wing_chord - 0.2*wing_chord; % distance between two spars 
+    Nxy = Rm_y/(wing_box_distance*(wing_span/2));
+    mech_loading = [Nx;Ny;Nxy;Mx;My;Mxy];
+    
+    [stresses_bot, stresses_top,z_all,mid_strains_and_curvatures,...
+     thermal_loading, ABD,MS, failed_plies, failed_side, failed_z,...
+     fail_mode, fail_tcs] = structural_model(mat_props, thetas, ...
+     rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec,...
+     mat_strengths_t,fail_crit,mat_strengths_c, SF, print_output);
+ 
+    min_ms = min(MS(:));
+    
+    ms_constraint = -min_ms;
+    ms_constraint_rho = 10;
+    
+    constraint_vec = [ms_constraint]; %make sure to make vertical
+    constraint_rho_vec = [ms_constraint_rho];
+    active_constraint_vec = constraint_vec(constraint_vec > 0);
+    active_constraint_rho_vec = constraint_rho_vec(constraint_vec > 0);
+    penalty_scaling_factors = diag(active_constraint_rho_vec);
+    objective_penalty = 1/2 * active_constraint_vec' * penalty_scaling_factors * active_constraint_vec;
+    if isempty(objective_penalty)
+        objective_penalty = 0;
+    end
+    
+    if i == 1
+        f_x = -clOverCd + objective_penalty;
+    else
+        f_x_plus_h = -clOverCd + objective_penalty;
+        gradient(i-1) = (f_x_plus_h - f_x)/h;
+        x = x - x_step;
+    end
+    end     
+    x_history(:,iter_num) = x;
+    objective_history(iter_num) = f_x;
+    gradient_norm(iter_num) = gradient;
+end
 
 
 
