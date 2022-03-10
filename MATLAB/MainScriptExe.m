@@ -54,7 +54,7 @@ viscosity = 1.789*10^-5;    %sea level air viscosity
 %% Configuration
 %subsonic plane
 sweepAngle = 0;     %In the future, I can make this a function of velocity
-taperRatio = getTaper(sweepAngle);  %see function for source of eq
+taper_ratio = getTaper(sweepAngle);  %see function for source of eq
                                     %taper should equal 0.45 for subsonic
 %% Inputs
 % I might make this whole program a function in the future
@@ -84,8 +84,8 @@ AR = wing_chord^2/wing_area;
 wing_num_plies = 2;
 wing_num_spar = 2;
 wing_spar_width = 0.0127;
-wing_tip_thickness = 0.12*(2*wing_chord*taperRatio)/(1+taperRatio);
-wing_root_thickness = wing_tip_thickness/taperRatio;
+wing_tip_thickness = 0.12*(2*wing_chord*taper_ratio)/(1+taper_ratio);
+wing_root_thickness = wing_tip_thickness/taper_ratio;
 
 nose_surface_area = .05;
 nose_length = .1;
@@ -97,8 +97,8 @@ hs_AR=hs_chord^2/hs_area;
 hs_num_plies = 2;
 hs_num_spar = 1.5; %num_sphs_ARtail
 hs_spar_width = wing_spar_width/2;
-hs_root_thickness = (2*(hs_area/hs_span)*taperRatio)/(1+taperRatio);
-hs_tip_thickness = hs_root_thickness/taperRatio;
+hs_root_thickness = (2*(hs_area/hs_span)*taper_ratio)/(1+taper_ratio);
+hs_tip_thickness = hs_root_thickness/taper_ratio;
 
 vs_span = .5;
 vs_chord = .15;
@@ -107,8 +107,8 @@ vs_AR=vs_chord^2/vs_area;
 vs_num_plies = 2;
 vs_num_spar = 1.5;
 vs_spar_width = wing_spar_width/2;
-vs_root_thickness = (2*(vs_area/vs_span)*taperRatio)/(1+taperRatio);
-vs_tip_thickness = vs_root_thickness/taperRatio;
+vs_root_thickness = (2*(vs_area/vs_span)*taper_ratio)/(1+taper_ratio);
+vs_tip_thickness = vs_root_thickness/taper_ratio;
 
 tail_boom_length = .9;
 tail_boom_radius = 0.0762/2;
@@ -181,7 +181,7 @@ Fx = -Rm/airfoil_thickness; %Force
 l = 0.8*wing_chord - 0.2*wing_chord; % length of wing box
 Nx = Fx/l; % in-plane stress
 %get induced drag so we can later get cd
-k = getK(AR, taperRatio, sweepAngle);
+k = getK(AR, taper_ratio, sweepAngle);
 cdi = cl^2*k;
 %get cd so we can later get cl/cd
 cd = cd0 + cdi;
@@ -233,7 +233,7 @@ maxLoadFactorTurns = 1.667; %input max load factor for turns
 % %This is for structural reasons
 % rootChordReq = 0.3048;  %carbon copy is 0.3048 this is 12 inches
 %   %That value is based on intuition/history and should be iterated on
-% tipChordReq = rootChordReq*taperRatio;
+% tipChordReq = rootChordReq*taper_ratio;
 % avgChordReq = (rootChordReq+tipChordReq)/2;
 % sMinStruct = avgChordReq*wing_span;
 % if sMinStruct > sMin
@@ -322,7 +322,7 @@ while norm(gradient) > 0.001
     end
     wing_chord = x(1);
         
-    [AR,wing_area] = geometric_outputs(wing_chord,wing_span);
+    [AR,wing_area,wing_tip_thickness,wing_root_thickness] = geometric_outputs(taper_ratio,wing_chord,wing_span);
     
     [weight,wing_weight,hs_weight,vs_weight,fuse_weight,tail_boom_weight] = compute_weight_analytic(battery, payload, wing_area, wing_num_spar,  wing_spar_width, balsa_density, divinycell_thickness, divinycell_density,...
             wing_num_plies, carbon_epoxy_density, wing_tip_thickness, wing_root_thickness, wing_span, fudge_factor,...
@@ -348,7 +348,7 @@ while norm(gradient) > 0.001
         % calculate velocity and lift coefficient
         v = -1;
         [wing_area, v, cl] = minDragEq(v,...
-          density, wing_area, cd0, wing_span, weight, taperRatio, sweepAngle);
+          density, wing_area, cd0, wing_span, weight, taper_ratio, sweepAngle);
         wing_surface_area = wing_area*2;
       
         % calculate tail areas and length and tail boom length (and therefore area)
@@ -365,7 +365,7 @@ while norm(gradient) > 0.001
     central_moment = calc_central_moment(component_moi,weight_vec,position_vec,quarter_chord);
     
     %get induced drag so we can later get cd
-    k = getK(AR, taperRatio, sweepAngle);
+    k = getK(AR, taper_ratio, sweepAngle);
     cdi = cl^2*k;
     %get cd so we can later get cl/cd
     cd = cd0 + cdi;
@@ -478,7 +478,7 @@ end
 disp("Stall speed: " + stall_speed);
 
 %% debugging brute force method
-wing_chords = linspace(.015,11,1000);
+wing_chords = linspace(11,.015,1000);
 iter_num = 0;
 gradient_norm = 0;
 objective_history = 0;
@@ -493,7 +493,7 @@ for j = 1:length(wing_chords)
     end
     wing_chord = x(1);
         
-    [AR,wing_area] = geometric_outputs(wing_chord,wing_span);
+    [AR,wing_area,wing_tip_thickness,wing_root_thickness] = geometric_outputs(taper_ratio,wing_chord,wing_span);
     
     [weight,wing_weight,hs_weight,vs_weight,fuse_weight,tail_boom_weight] = compute_weight_analytic(battery, payload, wing_area, wing_num_spar,  wing_spar_width, balsa_density, divinycell_thickness, divinycell_density,...
             wing_num_plies, carbon_epoxy_density, wing_tip_thickness, wing_root_thickness, wing_span, fudge_factor,...
@@ -519,7 +519,7 @@ for j = 1:length(wing_chords)
         % calculate velocity and lift coefficient
         v = -1;
         [wing_area, v, cl] = minDragEq(v,...
-          density, wing_area, cd0, wing_span, weight, taperRatio, sweepAngle);
+          density, wing_area, cd0, wing_span, weight, taper_ratio, sweepAngle);
         wing_surface_area = wing_area*2;
       
         % calculate tail areas and length and tail boom length (and therefore area)
@@ -536,7 +536,7 @@ for j = 1:length(wing_chords)
     central_moment = calc_central_moment(component_moi,weight_vec,position_vec,quarter_chord);
     
     %get induced drag so we can later get cd
-    k = getK(AR, taperRatio, sweepAngle);
+    k = getK(AR, taper_ratio, sweepAngle);
     cdi = cl^2*k;
     %get cd so we can later get cl/cd
     cd = cd0 + cdi;
@@ -585,7 +585,7 @@ for j = 1:length(wing_chords)
     if isempty(objective_penalty)
         objective_penalty = 0;
     end
-    
+
     if i == 1
         f_x = -clOverCd + objective_penalty;
     else
