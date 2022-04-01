@@ -540,6 +540,7 @@ for j = 1:length(wing_chords)
     cdi = cl^2*k;
     %get cd so we can later get cl/cd
     cd = cd0 + cdi;
+    drag = 1/2*density*v^2*cd*wing_area;
     %get cl/cd for performance comparison
     clOverCd = cl/cd;
     
@@ -559,7 +560,6 @@ for j = 1:length(wing_chords)
     Fx = -Rm/airfoil_thickness; %Force
     l = 0.8*wing_chord - 0.2*wing_chord; % length of wing box
     Nx = Fx/l; % in-plane stress
-    drag = 1/2*density*v^2*cd*wing_area;
     Rm_y = drag*(wing_span/4); % reaction moment at root in the y direction
     wing_box_distance  = 0.8*wing_chord - 0.2*wing_chord; % distance between two spars 
     Nxy = Rm_y/(wing_box_distance*(wing_span/2));
@@ -584,10 +584,10 @@ for j = 1:length(wing_chords)
     objective_penalty = 1/2 * active_constraint_vec' * penalty_scaling_factors * active_constraint_vec;
     if isempty(objective_penalty)
         objective_penalty = 0;
+    end
 
-    
     if i == 1
-        f_x = -clOverCd + objective_penalty;
+        f_x = drag + objective_penalty;
     else
         f_x_plus_h = -clOverCd + objective_penalty;
         gradient(i-1) = (f_x_plus_h - f_x)/h;
