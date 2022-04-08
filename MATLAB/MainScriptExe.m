@@ -76,6 +76,7 @@ payload = 71.5719;
 %geometric inputs
 
 cl = .1;
+cl_cruise_max = .8;
 cd0 = .1;
 wing_span = 3.65;
 wing_chord = 10;
@@ -403,17 +404,23 @@ while norm(gradient) > 0.001
     min_ms = min(MS(:));
     
     ms_constraint = -min_ms;
+    cl_constraint = cl - cl_cruise_max;
+    cl_constraint = cl - 10;
     ms_constraint_rho = 10;
+    cl_constraint_rho = 100;
     
-    constraint_vec = [ms_constraint]; %make sure to make vertical
-    constraint_rho_vec = [ms_constraint_rho];
+    constraint_vec = [ms_constraint,cl_constraint]; %make sure to make vertical
+    constraint_rho_vec = [ms_constraint_rho,cl_constraint_rho];
     active_constraint_vec = constraint_vec(constraint_vec > 0);
     active_constraint_rho_vec = constraint_rho_vec(constraint_vec > 0);
     penalty_scaling_factors = diag(active_constraint_rho_vec);
-    objective_penalty = 1/2 * active_constraint_vec' * penalty_scaling_factors * active_constraint_vec;
-    if isempty(objective_penalty)
+    
+    if isempty(penalty_scaling_factors)
         objective_penalty = 0;
+    else
+        objective_penalty = 1/2 * active_constraint_vec' * penalty_scaling_factors * active_constraint_vec;
     end
+    
     
     if i == 1
         f_x = drag + objective_penalty;
