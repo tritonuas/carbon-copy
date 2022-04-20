@@ -381,7 +381,7 @@ while norm(gradient) > 0.001
     My = 0;
     Mxy = 0;
     delta_T = 0;
-    airfoil_thickness = .1;
+    airfoil_thickness = wing_chord*.12;
     thetas = 90;
     rad_or_deg = "deg";
     thicknesses = ones(length(thetas),1)*thickness_per_ply;
@@ -405,7 +405,6 @@ while norm(gradient) > 0.001
     
     ms_constraint = -min_ms;
     cl_constraint = cl - cl_cruise_max;
-    cl_constraint = cl - 10;
     ms_constraint_rho = 10;
     cl_constraint_rho = 100;
     
