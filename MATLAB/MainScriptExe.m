@@ -163,7 +163,7 @@ mat_strengths_c = [sigma_1C;sigma_2C;sigma_12];
 
 fail_crit = "max_stress";
 print_output = false;
-SF = 2;
+SF = 100;
 
 Nx = 100;
 Ny = 0;
@@ -173,7 +173,7 @@ My = 0;
 Mxy = 0;
 delta_T = 0;
 airfoil_thickness = .1;
-thetas = 90;
+thetas = [0,0];
 rad_or_deg = "deg";
 thicknesses = ones(length(thetas),1)*thickness_per_ply;
 Rm = -lift*(wing_span/4); % reaction moment at root
@@ -382,10 +382,9 @@ while norm(gradient) > 0.001
     Mxy = 0;
     delta_T = 0;
     airfoil_thickness = wing_chord*.12;
-    thetas = 90;
     rad_or_deg = "deg";
     thicknesses = ones(length(thetas),1)*thickness_per_ply;
-    Rm = -lift*(wing_span/4); % reaction moment at root
+    Rm = -5*lift*(wing_span/4); % reaction moment at root
     % t_airfoil = airfoil thickness
     Fx = -Rm/airfoil_thickness; %Force
     l = 0.8*wing_chord - 0.2*wing_chord; % length of wing box
@@ -405,7 +404,8 @@ while norm(gradient) > 0.001
     
     ms_constraint = -min_ms;
     cl_constraint = cl - cl_cruise_max;
-    ms_constraint_rho = 10;
+    cl_constraint = cl - 10;
+    ms_constraint_rho = 100;
     cl_constraint_rho = 100;
     
     constraint_vec = [ms_constraint,cl_constraint]; %make sure to make vertical
