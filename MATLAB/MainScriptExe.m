@@ -46,6 +46,7 @@ addpath("Airfoil");
 addpath("Structures");
 addpath("CM_Calc");
 addpath("optimizers");
+addpath("stability");
 %% Constants
 g = 9.81;                   %sea level Earth gravity
 density = 1.225;            %sea level air density
@@ -59,7 +60,7 @@ taper_ratio = getTaper(sweepAngle);  %see function for source of eq
 %% Inputs
 % I might make this whole program a function in the future
 
-alpha = .0001;
+alpha = [.0001 0;0 0.002];
 h = 1e-5;
 
 %operating conditions
@@ -310,7 +311,7 @@ hasVel = 1;
 hasS = 1;       %declaring that I have S and want to calculate for Cl
 hasCl = 0;      %This is in preperation for the lift equation
 
-x = [wing_chord];
+x = [wing_chord;tail_boom_length]; 
 iter_num = 0;
 gradient = ones(length(x),1);   %to run the loop
 while norm(gradient) > 0.001
@@ -322,6 +323,7 @@ while norm(gradient) > 0.001
     x = x + x_step;
     end
     wing_chord = x(1);
+    tail_boom_length = x(2);
         
     [AR,wing_area,wing_tip_thickness,wing_root_thickness] = geometric_outputs(taper_ratio,wing_chord,wing_span);
     
@@ -365,6 +367,15 @@ while norm(gradient) > 0.001
     quarter_chord = [(wing_chord/2)+(.2*fuse_length),0,0.05];
     central_moment = calc_central_moment(component_moi,weight_vec,position_vec,quarter_chord);
     
+    x_ach=fuse_length+tail_boom_length;
+    x_acv=x_ach;
+    x_cg=fuse_length/2;
+    hs_cg_distance=x_ach-x_cg;
+    vs_cg_distance=x_acv-x_cg;
+
+    C_HT= hs_volume_coefficient_model(hs_cg_distance, hs_area, wing_chord, wing_surface_area);
+    C_VT= vs_volume_coefficient_model(vs_cg_distance, vs_area, wing_span, wing_area);
+   
     %get induced drag so we can later get cd
     k = getK(AR, taper_ratio, sweepAngle);
     cdi = cl^2*k;
@@ -405,11 +416,16 @@ while norm(gradient) > 0.001
     ms_constraint = -min_ms;
     cl_constraint = cl - cl_cruise_max;
     cl_constraint = cl - 10;
+    C_HT_constriant = 0.4-C_HT;
+    C_VT_constriant = 0.06-C_VT;
     ms_constraint_rho = 100;
     cl_constraint_rho = 100;
+    C_HT_constriant_rho = 10;
+    C_VT_constriant_rho = 10;
     
-    constraint_vec = [ms_constraint,cl_constraint]; %make sure to make vertical
-    constraint_rho_vec = [ms_constraint_rho,cl_constraint_rho];
+    
+    constraint_vec = [ms_constraint;cl_constraint;C_HT_constriant;C_VT_constriant]; %make sure to make vertical
+    constraint_rho_vec = [ms_constraint_rho,cl_constraint_rho,C_HT_constriant_rho,C_VT_constriant_rho];
     active_constraint_vec = constraint_vec(constraint_vec > 0);
     active_constraint_rho_vec = constraint_rho_vec(constraint_vec > 0);
     penalty_scaling_factors = diag(active_constraint_rho_vec);
@@ -431,7 +447,7 @@ while norm(gradient) > 0.001
     end     
     x_history(:,iter_num) = x;
     objective_history(iter_num) = f_x;
-    gradient_norm(iter_num) = gradient;
+    gradient_norm( iter_num )= norm(gradient);
     x = gradient_descent_optimizer(gradient,alpha,x)
 end
 

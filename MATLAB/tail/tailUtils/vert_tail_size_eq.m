@@ -19,7 +19,7 @@ elseif ~hasS
     wingarea = (x_acv-x_cg)*S_v/C_VT*wingspan;
     
 elseif ~hasC_VT
-    C_VT = (x_acv-x_cg)*S_v/wingarea*wingspan;
+    C_VT = (x_acv-x_cg)*S_v/(wingarea*wingspan);
    
 end
     

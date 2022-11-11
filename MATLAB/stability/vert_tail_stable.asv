@@ -1,0 +1,3 @@
+function [wingspan, S_v, wingarea, x_acv, x_cg, C_VT] = vert_tail_stable(x_acv, x_cg, S_v, wingspan, wingarea)
+% x_avc
+  C_VT = (x_acv-x_cg)*S_v/wingarea*wingspan;

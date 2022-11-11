@@ -1,0 +1,3 @@
+function C_HT= horz_stable(dis_tail_ceng, S_h, c, S)
+   C_HT = (x)*S_h/(c*S);
+    
