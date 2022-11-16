@@ -19,38 +19,52 @@ diff(xn2);    % checks if any 2 nodes are the same, should print error
 
 yn1=yu(xoc);
 yn2=yl(xoc);
-xN=[xn2 xn1];   %node coordinates
-yN=[yn2 yn1];
-scatter(xN,yN)
+xNode=[xn2 xn1];   %node coordinates
+yNode=[yn2 yn1];
+scatter(xNode,yNode)
 hold on
 xlim([0 1])
 ylim([-.5,.5])
-xC=(xN(1:(nodes-1))+xN(2:end))/2;    % Control points
-yC=(yN(1:(nodes-1))+yN(2:end))/2 ;    %
-pl= sqrt((xN(2:end)-xN(1:(nodes-1))).^2+(xN(2:end)-xN(1:(nodes-1))).^2);
-x = sym('x');
-y = sym('y');
+xControl=(xNode(1:(nodes-1))+xNode(2:end))/2;    % Control points
+yControl=(yNode(1:(nodes-1))+yNode(2:end))/2 ;    %
+panelLength= sqrt((xNode(2:end)-xNode(1:(nodes-1))).^2+(xNode(2:end)-xNode(1:(nodes-1))).^2);
+
 j=1;
 k=2;
 while j<nodes
-  epsnu(:,j) =  (1./pl(j)).*[(xN(k)-xN(j)) (yN(k)-yN(j)); -(yN(k)-yN(j))... 
-      (xN(k)-xN(j))]*[(x-xN(j)); (y-yN(j))] ;
+  epsnu(:,j) =  (1./panelLength(j)).*[(xNode(k)-xNode(j)) (yNode(k)-yNode(j)); -(yNode(k)-yNode(j))... 
+      (xNode(k)-xNode(j))]*[(xControl(j)-xNode(j)); (yControl(j)-yNode(j))] ;
 j=j+1;
 k = k+1;
 
 end
     eps=epsnu(1,:);
     nu=epsnu(2,:);
-phi=atan2(nu.*pl,(eps.^2+nu.^2-eps.*pl));
-psi=.5*log((eps.^2+nu.^2)./((eps-pl).^2+nu.^2));
+phi=atan2(nu.*panelLength,(eps.^2+nu.^2-eps.*panelLength));
+psi=.5*log((eps.^2+nu.^2)./((eps-panelLength).^2+nu.^2)); 
+
+j=1; 
+k=2;
+AirfoilCoefficientMatrix=zeros(nodes);
+AirfoilCoefficientMatrix(nodes,1)=1;
+AirfoilCoefficientMatrix(nodes,nodes)=1;
+while k<nodes
+P=[(xNode(k)-xNode(j)) -(yNode(k)-yNode(j)); (yNode(k)-yNode(j))...
+    (xNode(k)-xNode(j))]*[(panelLength(j)-eps(j)).*phi(j)+nu(j).*psi(j) ...
+    eps(j).*phi(j)-nu(j).*psi(j); nu(j).*phi(j)-(panelLength(j)-eps(j)).*psi(j)-panelLength(j) ...
+    (-nu(j).*phi(j)-eps(j).*psi(j)+panelLength(j))]
+AirfoilCoefficientMatrix(j,j)=AirfoilCoefficientMatrix(j,j)+(xControl(k)-xControl(j))/panelLength(j)*P(2,1)...
+    -(yControl(k)-yControl(j))/panelLength(j)*P(1,1);
+AirfoilCoefficientMatrix(j,k)=AirfoilCoefficientMatrix(j,k)+(xControl(k)-xControl(j))/panelLength(j)*P(2,2)...
+    -(yControl(k)-yControl(j))/panelLength(j)*P(1,2);
 
 
 
+j=j+1;
+k = k+1;
 
-
-
-
-
+end
+AirfoilCoefficientMatrix
 
 
 
