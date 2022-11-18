@@ -223,6 +223,10 @@ height_vec = [.035,.13,.0475;
     .0254,tail_boom_length,.0254];
     width_vec = height_vec(:,[3, 1, 2]);
 
+
+[MS, thetas] = structural_model_test(mat_props, thetas, ...
+         rad_or_deg, thicknesses, mech_loading, delta_T, cte_vec,...
+         mat_strengths_t,fail_crit,mat_strengths_c, SF, print_output)
 %% Desired Parameters/Constraints
 
 %%CONSTRAINT: MAX CL CRUISE
