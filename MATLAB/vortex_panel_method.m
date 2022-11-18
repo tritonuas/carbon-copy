@@ -2,8 +2,8 @@
 alpha = 0;
 chord_length=2;
 cruise_speed=20;
-nodes = 100;
-clear eps nu epsnu
+nodes = 10;
+clear eps eta epseta
 
 % function [Cl,Cmle] = vortex_panel_method(xu,xl,yu,yl,alpha,chord_length,cruise_speed,nodes)
 dtheta = 2*pi/(nodes-1);
@@ -29,39 +29,56 @@ xControl=(xNode(1:(nodes-1))+xNode(2:end))/2;    % Control points
 yControl=(yNode(1:(nodes-1))+yNode(2:end))/2 ;    %
 panelLength= sqrt((xNode(2:end)-xNode(1:(nodes-1))).^2+(xNode(2:end)-xNode(1:(nodes-1))).^2);
 
-j=1;
-k=2;
-while j<nodes
-  epsnu(:,j) =  (1./panelLength(j)).*[(xNode(k)-xNode(j)) (yNode(k)-yNode(j)); -(yNode(k)-yNode(j))... 
-      (xNode(k)-xNode(j))]*[(xControl(j)-xNode(j)); (yControl(j)-yNode(j))] ;
-j=j+1;
-k = k+1;
+RearNodeCounter=1;
+ForwardNodeCounter=2;
+ControlPointCounter=1;
+epsilon=zeros(nodes);
+eta=zeros(nodes);
+while RearNodeCounter<nodes
+while ControlPointCounter<nodes
+  epseta=(1./panelLength(RearNodeCounter)).*[(xNode(ForwardNodeCounter)-xNode(RearNodeCounter)) (yNode(ForwardNodeCounter)-yNode(RearNodeCounter)); -(yNode(ForwardNodeCounter)-yNode(RearNodeCounter))... 
+      (xNode(ForwardNodeCounter)-xNode(RearNodeCounter))]*[(xControl(ControlPointCounter)-xNode(RearNodeCounter)); (yControl(ControlPointCounter)-yNode(RearNodeCounter))]; 
+  epsilon(RearNodeCounter,ControlPointCounter)=epsilon(RearNodeCounter,ControlPointCounter)+epseta(1,1);
+ 
+  eta(RearNodeCounter,ControlPointCounter)=eta(RearNodeCounter,ControlPointCounter)+epseta(2,1);
+ControlPointCounter=ControlPointCounter+1;
+
 
 end
-    eps=epsnu(1,:);
-    nu=epsnu(2,:);
-phi=atan2(nu.*panelLength,(eps.^2+nu.^2-eps.*panelLength));
-psi=.5*log((eps.^2+nu.^2)./((eps-panelLength).^2+nu.^2)); 
+RearNodeCounter=RearNodeCounter+1;
+ForwardNodeCounter=ForwardNodeCounter+1;
+ControlPointCounter=1;
+end
+epsilon=epsilon(1:(nodes-1),1:(nodes-1));
+eta=eta(1:(nodes-1),1:(nodes-1));
 
-j=1; 
-k=2;
+    RearNodeCounter=1;
+while RearNodeCounter<nodes
+phi=atan2(eta.*panelLength,(epsilon(RearNodeCounter,:).^2+eta.^2-epsilon(RearNodeCounter,:).*panelLength(RearNodeCounter)));
+psi=.5*log((epsilon(RearNodeCounter,:).^2+eta.^2)./((epsilon(RearNodeCounter)-panelLength(RearNodeCounter)).^2+eta(RearNodeCounter).^2)); 
+RearNodeCounter=RearNodeCounter+1;
+end
+RearNodeCounter=1; 
+ForwardNodeCounter=2;
 AirfoilCoefficientMatrix=zeros(nodes);
 AirfoilCoefficientMatrix(nodes,1)=1;
 AirfoilCoefficientMatrix(nodes,nodes)=1;
-while k<nodes
-P=[(xNode(k)-xNode(j)) -(yNode(k)-yNode(j)); (yNode(k)-yNode(j))...
-    (xNode(k)-xNode(j))]*[(panelLength(j)-eps(j)).*phi(j)+nu(j).*psi(j) ...
-    eps(j).*phi(j)-nu(j).*psi(j); nu(j).*phi(j)-(panelLength(j)-eps(j)).*psi(j)-panelLength(j) ...
-    (-nu(j).*phi(j)-eps(j).*psi(j)+panelLength(j))]
-AirfoilCoefficientMatrix(j,j)=AirfoilCoefficientMatrix(j,j)+(xControl(k)-xControl(j))/panelLength(j)*P(2,1)...
-    -(yControl(k)-yControl(j))/panelLength(j)*P(1,1);
-AirfoilCoefficientMatrix(j,k)=AirfoilCoefficientMatrix(j,k)+(xControl(k)-xControl(j))/panelLength(j)*P(2,2)...
-    -(yControl(k)-yControl(j))/panelLength(j)*P(1,2);
+ControlPointCounter=1;
+while ForwardNodeCounter<nodes
+    while ControlPointCounter<nodes
+P=(1/2/pi/panelLength(RearNodeCounter)^2)*[(xNode(ForwardNodeCounter)-xNode(RearNodeCounter)) -(yNode(ForwardNodeCounter)-yNode(RearNodeCounter)); (yNode(ForwardNodeCounter)-yNode(RearNodeCounter))...
+    (xNode(ForwardNodeCounter)-xNode(RearNodeCounter))]*[(panelLength(RearNodeCounter)-epsilon(RearNodeCounter,ControlPointCounter)).*phi(RearNodeCounter,ControlPointCounter)+eta(RearNodeCounter,ControlPointCounter).*psi(RearNodeCounter,ControlPointCounter) ...
+    epsilon(RearNodeCounter,ControlPointCounter).*phi(RearNodeCounter,ControlPointCounter)-eta(RearNodeCounter,ControlPointCounter).*psi(RearNodeCounter,ControlPointCounter); eta(RearNodeCounter,ControlPointCounter).*phi(RearNodeCounter,ControlPointCounter)-(panelLength(RearNodeCounter)-epsilon(RearNodeCounter,ControlPointCounter)).*psi(RearNodeCounter,ControlPointCounter)-panelLength(RearNodeCounter) ...
+    (-eta(RearNodeCounter,ControlPointCounter).*phi(RearNodeCounter,ControlPointCounter)-epsilon(RearNodeCounter,ControlPointCounter).*psi(RearNodeCounter,ControlPointCounter)+panelLength(RearNodeCounter))]
+AirfoilCoefficientMatrix(RearNodeCounter,ControlPointCounter)=AirfoilCoefficientMatrix(RearNodeCounter,RearNodeCounter)+(xControl(ForwardNodeCounter)-xControl(RearNodeCounter))/panelLength(RearNodeCounter)*P(2,1)...
+    -(yControl(ForwardNodeCounter)-yControl(RearNodeCounter))/panelLength(RearNodeCounter)*P(1,1);
+AirfoilCoefficientMatrix(RearNodeCounter,ForwardNodeCounter)=AirfoilCoefficientMatrix(RearNodeCounter,ForwardNodeCounter)+(xControl(ForwardNodeCounter)-xControl(RearNodeCounter))/panelLength(RearNodeCounter)*P(2,2)...
+    -(yControl(ForwardNodeCounter)-yControl(RearNodeCounter))/panelLength(RearNodeCounter)*P(1,2);
+ControlPointCounter=ControlPointCounter+1;
 
-
-
-j=j+1;
-k = k+1;
+    end
+RearNodeCounter=RearNodeCounter+1;
+ForwardNodeCounter = ForwardNodeCounter+1;
 
 end
 AirfoilCoefficientMatrix
