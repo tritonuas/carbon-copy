@@ -14,11 +14,11 @@
 % could give .txt file for solidworks
 
 %For function testing:
-% max_camber=.02; 
-% max_camber_position=.4;
-% max_thickness=.12;
-% close all
-function [xu,xl,yu,yl,yc,dycdx]= get_foil_shape(max_camber,max_camber_position,max_thickness)
+max_camber=.02; 
+max_camber_position=.4;
+max_thickness=.12;
+close all
+%function [xu,xl,yu,yl,yc,dycdx]= get_foil_shape(max_camber,max_camber_position,max_thickness)
 x1 = linspace(0,max_camber_position,1000);
 x2 = linspace(max_camber_position,1,1000);
 yc1=(max_camber/max_camber_position^2)*(2*max_camber_position.*x1-x1.^2);   %Camber from 0 to P
@@ -27,20 +27,20 @@ yc=[yc1,yc2];         %Camber line vector
 dycdx1=2*max_camber/(max_camber_position^2)*(max_camber_position-x1); %Gradient from 0 to P
 dycdx2=(2*max_camber/(1-max_camber_position)^2)*(max_camber_position-x2); %Gradient from P to 1
 x=[x1,x2];
-dycdx=[dycdx1;dycdx2]; %gradient vector dyc/dx
+dycdx=[dycdx1 dycdx2]; %gradient vector dyc/dx
 yt = max_thickness/.2*(.2969.*x.^.5-.126.*x-.3516.*x.^2+.2843.*x.^3-.1015.*x.^4);
-theta=linspace(0,1,2000);
+theta=atan(dycdx);
 xc = linspace(0,1,2000); 
 xu = xc-yt.*sin(theta);
 yu=yc+yt.*cos(theta);
 xl = xc-yt.*sin(theta);
 yl = yc-yt.*cos(theta);
 % For function testing or returning figure
-% plot(xc,yc)
-% 
-% hold on 
-% plot(xu,yu)
-% plot(xl,yl)
-% xlim([0 1])
-% ylim([-.5,.5])
-end
+plot(xc,yc)
+
+hold on 
+plot(xu,yu)
+plot(xl,yl)
+xlim([0 1])
+ylim([-.5,.5])
+%end
