@@ -86,7 +86,7 @@ AirfoilCoefficientMatrix(nodes,nodes)=1;
 ControlPointCounter=1;
 ForwardControlPointCounter=2;
 while ForwardNodeCounter<nodes
-    while ForwardControlPointCounter<nodes
+    while ControlPointCounter<nodes
 P=(1/2/pi/panelLength(RearNodeCounter)^2)*[(xNode(ForwardNodeCounter)-xNode(RearNodeCounter)) -(yNode(ForwardNodeCounter)-yNode(RearNodeCounter)); (yNode(ForwardNodeCounter)-yNode(RearNodeCounter)) (xNode(ForwardNodeCounter)-xNode(RearNodeCounter))]*[(panelLength(RearNodeCounter)-zeta(RearNodeCounter,ControlPointCounter)).*phi(RearNodeCounter,ControlPointCounter)+eta(RearNodeCounter,ControlPointCounter).*psi(RearNodeCounter,ControlPointCounter) ...
     zeta(RearNodeCounter,ControlPointCounter).*phi(RearNodeCounter,ControlPointCounter)-eta(RearNodeCounter,ControlPointCounter).*psi(RearNodeCounter,ControlPointCounter); eta(RearNodeCounter,ControlPointCounter).*phi(RearNodeCounter,ControlPointCounter)-(panelLength(RearNodeCounter)-zeta(RearNodeCounter,ControlPointCounter)).*psi(RearNodeCounter,ControlPointCounter)-panelLength(RearNodeCounter) ...
     (-eta(RearNodeCounter,ControlPointCounter).*phi(RearNodeCounter,ControlPointCounter)-zeta(RearNodeCounter,ControlPointCounter).*psi(RearNodeCounter,ControlPointCounter)+panelLength(RearNodeCounter))];
