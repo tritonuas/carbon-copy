@@ -47,6 +47,7 @@ addpath("Structures");
 addpath("CM_Calc");
 addpath("optimizers");
 addpath("stability");
+addpath("areodynamics")
 %% Constants
 g = 9.81;                   %sea level Earth gravity
 density = 1.225;            %sea level air density
@@ -60,7 +61,7 @@ taper_ratio = getTaper(sweepAngle);  %see function for source of eq
 %% Inputs
 % I might make this whole program a function in the future
 
-alpha = [.0001 0;0 0.002];
+alpha = [.0001 0 0;0 0.002 0;0 0 0.0001];
 h = 1e-5;
 
 %operating conditions
@@ -311,7 +312,7 @@ hasVel = 1;
 hasS = 1;       %declaring that I have S and want to calculate for Cl
 hasCl = 0;      %This is in preperation for the lift equation
 
-x = [wing_chord;tail_boom_length]; 
+x = [wing_chord;vs_chord;hs_chord]; 
 iter_num = 0;
 gradient = ones(length(x),1);   %to run the loop
 while norm(gradient) > 0.001
@@ -323,9 +324,10 @@ while norm(gradient) > 0.001
     x = x + x_step;
     end
     wing_chord = x(1);
-    tail_boom_length = x(2);
+    vs_chord= x(2);
+    hs_chord=x(3);
         
-    [AR,wing_area,wing_tip_thickness,wing_root_thickness] = geometric_outputs(taper_ratio,wing_chord,wing_span);
+    [AR,wing_area,wing_tip_thickness,wing_root_thickness,hs_area,vs_area] = geometric_outputs(taper_ratio,wing_chord,wing_span,hs_chord,hs_span,vs_chord,vs_span);
     
     [weight,wing_weight,hs_weight,vs_weight,fuse_weight,tail_boom_weight] = compute_weight_analytic(battery, payload, wing_area, wing_num_spar,  wing_spar_width, balsa_density, divinycell_thickness, divinycell_density,...
             wing_num_plies, carbon_epoxy_density, wing_tip_thickness, wing_root_thickness, wing_span, fudge_factor,...
@@ -420,8 +422,8 @@ while norm(gradient) > 0.001
     C_VT_constriant = 0.06-C_VT;
     ms_constraint_rho = 100;
     cl_constraint_rho = 100;
-    C_HT_constriant_rho = 10;
-    C_VT_constriant_rho = 10;
+    C_HT_constriant_rho = 50000;
+    C_VT_constriant_rho = 50000;
     
     
     constraint_vec = [ms_constraint;cl_constraint;C_HT_constriant;C_VT_constriant]; %make sure to make vertical
