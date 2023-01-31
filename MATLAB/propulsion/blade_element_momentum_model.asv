@@ -1,20 +1,39 @@
-function [outputArg1,outputArg2] = blade_element_momentum_model(numsection,angel,rotation_velocity,plane_velocity,radius)% 
+%function [Thrust,Torque] = blade_element_momentum_model(numsection,angle,rotation_velocity,plane_velocity,radius)% 
+clear all;
 
-Cl=1.5;
-CD=0.5;
-chord=0.05;
-air_density=1.225;
-section_radius=linspace(0,radius,numsection);
-for i=1:numsection
-V1=sqrt((r*rotation_velocity)^2+plane_velocity^2);
-end
 
-Lift=Cl*0.5*air_density.*(V1).^2*chord*dr;
-Drag=CD*0.5*air_density.*(V1).^2*chord*dr;
 
-Thrust=0.5*air_density*2*(Lift*cos(angel)-Drag*cos(angel))*V1.^2*chord;
-Torque=Drag*r
 
+    numsection = 30;
+    angle=linspace(10,30,numsection);
+    rotation_velocity=340.5;
+ 
+    plane_velocity=22;
+    radius=0.33;
+    num_blades=2;
+    
+    
+    
+    
+    Cl=0.75;
+    CD=0.5;
+    chord=0.05;
+    air_density=1.225;
+    section_radius=linspace(0,radius,numsection);
+    
+    for i=1:numsection
+    V(i)=sqrt((section_radius(i)*rotation_velocity)^2+plane_velocity^2);
+    phi(i)=angle(i)-atand(plane_velocity/(section_radius(i)*rotation_velocity));
+    end
+    
+    dr=radius/numsection;
+    
+    Lift=Cl*0.5*air_density.*(V).^2*chord*dr;
+    Drag=CD*0.5*air_density.*(V).^2*chord*dr;
+    
+    Thrust=num_blades.*sum(Lift.*cosd(phi)-Drag.*sind(phi));
+    Torque=sum(Drag.*section_radius);
+
+    
 %   Detailed explanation goes here
-outputArg1 = inputArg1;
-outputArg2 = inputArg2;
+
