@@ -1,4 +1,4 @@
-function [Thrust,Torque] = blade_element_momentum_model(numsection,angle,rotation_velocity,plane_velocity,radius)
+function [Thrust,Torque] = blade_element_momentum_model(num_blades,numsection,angle,rotation_velocity,plane_velocity,radius)
 
     
     Cl=0.75;

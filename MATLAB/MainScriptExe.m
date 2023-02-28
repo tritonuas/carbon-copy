@@ -48,6 +48,7 @@ addpath("CM_Calc");
 addpath("optimizers");
 addpath("stability");
 addpath("areodynamics")
+addpath("propulsion")
 %% Constants
 g = 9.81;                   %sea level Earth gravity
 density = 1.225;            %sea level air density
@@ -62,7 +63,7 @@ taper_ratio = getTaper(sweepAngle);  %see function for source of eq
 % I might make this whole program a function in the future
 
 %alpha = [.0001 0 0;0 0.002 0;0 0 0.0001];
-alpha = [.0001 0;0 0.002];
+alpha = [.0001 0 0;0 0.002 0;0 0 0.2];
 h = 1e-5;
 
 %operating conditions
@@ -72,6 +73,12 @@ lift = weight;%want to design this for cruise conditions
 battery = 24.6876;
 payload = 71.5719;
 
+%porpulsion inputs
+numsection=20;
+angle=linspace(30,16,numsection);
+rotation_velocity=100*15*2*pi/60;
+radius=0.254;
+num_blades=2;
 %Tail Boom Requirement    %3 inch diameter converted to radius in m
 %Note: This is only cause that's the size of the pole we have. This can be
 %made a design variable in the future
@@ -209,7 +216,7 @@ tail_boom_weight = 1;
 weight_vec = [battery,wing_weight,fuse_weight,vs_weight,hs_weight,tail_boom_weight];
 
 %position vec
-position_vec = [0.05,0,0];
+position_vec = [0.05,0,0;
     (wing_chord/2)+(.2*fuse_length),0,0.05;
     fuse_length/2,0,0;
     (vs_chord/2)+tail_boom_length+fuse_length,0,vs_span/2;
@@ -314,7 +321,7 @@ hasS = 1;       %declaring that I have S and want to calculate for Cl
 hasCl = 0;      %This is in preperation for the lift equation
 
 %x = [wing_chord;vs_chord;hs_chord]; 
-x = [wing_chord;vs_chord];
+x = [wing_chord;vs_chord;rotation_velocity];
 iter_num = 0;
 gradient = ones(length(x),1);   %to run the loop
 while norm(gradient) > 0.001
@@ -327,7 +334,7 @@ while norm(gradient) > 0.001
     end
     wing_chord = x(1);
     vs_chord= x(2);
-    %hs_chord=x(3);
+    rotation_velocity=x(3);
         
     [AR,wing_area,wing_tip_thickness,wing_root_thickness,hs_area,vs_area] = geometric_outputs(taper_ratio,wing_chord,wing_span,hs_chord,hs_span,vs_chord,vs_span);
     
@@ -364,7 +371,8 @@ while norm(gradient) > 0.001
         
 
     end
-
+    
+    [thrust,torque] = blade_element_momentum_model(num_blades,numsection,angle,rotation_velocity,v,radius);
     
     component_moi = calc_component_moi(mass_vec,height_vec,width_vec);
     
@@ -418,6 +426,8 @@ while norm(gradient) > 0.001
     min_ms = min(MS(:));
     
     ms_constraint = -min_ms;
+    thrust_drag_constraint=drag-thrust;
+    thrust_drag_constraint2=-(drag-thrust);
     cl_constraint = cl - cl_cruise_max;
     cl_constraint = cl - 10;
     C_HT_constriant = 0.4-C_HT;
@@ -426,10 +436,11 @@ while norm(gradient) > 0.001
     cl_constraint_rho = 100;
     C_HT_constriant_rho = 500;
     C_VT_constriant_rho = 50000;
+    thrust_drag_constraint_rho=0.00000000001;
+    thrust_drag_constraint2_rho=0.00000000001;
     
-    
-    constraint_vec = [ms_constraint;cl_constraint;C_HT_constriant;C_VT_constriant]; %make sure to make vertical
-    constraint_rho_vec = [ms_constraint_rho,cl_constraint_rho,C_HT_constriant_rho,C_VT_constriant_rho];
+    constraint_vec = [ms_constraint;cl_constraint;C_HT_constriant;C_VT_constriant;thrust_drag_constraint;thrust_drag_constraint2]; %make sure to make vertical
+    constraint_rho_vec = [ms_constraint_rho,cl_constraint_rho,C_HT_constriant_rho,C_VT_constriant_rho,thrust_drag_constraint_rho,thrust_drag_constraint2_rho];
     active_constraint_vec = constraint_vec(constraint_vec > 0);
     active_constraint_rho_vec = constraint_rho_vec(constraint_vec > 0);
     penalty_scaling_factors = diag(active_constraint_rho_vec);
